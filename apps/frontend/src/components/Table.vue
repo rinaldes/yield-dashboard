@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { getPaginationRowModel } from "@tanstack/vue-table";
 import type { TableColumn } from "@nuxt/ui";
-import { debounce } from "lodash";
+import { debounce } from "lodash-es";
 
 defineProps(["data"]);
 const table = useTemplateRef("table");
