@@ -1,0 +1,63 @@
+@import "tailwindcss" theme(static);
+@import "@nuxt/ui";
+
+@theme static {
+  --font-sans: "DM Sans", sans-serif;
+
+  --breakpoint-3xl: 1920px;
+
+  --color-plantation-50: #1d4949;
+  --color-plantation-100: #1d4949;
+  --color-plantation-200: #1d4949;
+  --color-plantation-300: #1d4949;
+  --color-plantation-400: #1d4949;
+  --color-plantation-500: #1d4949;
+  --color-plantation-600: #1d4949;
+  --color-plantation-700: #1d4949;
+  --color-plantation-800: #1d4949;
+  --color-plantation-900: #1d4949;
+  --color-plantation-950: #1d4949;
+
+  --color-crown-of-thorns-50: #7a2929;
+  --color-crown-of-thorns-100: #7a2929;
+  --color-crown-of-thorns-200: #7a2929;
+  --color-crown-of-thorns-300: #7a2929;
+  --color-crown-of-thorns-400: #7a2929;
+  --color-crown-of-thorns-500: #7a2929;
+  --color-crown-of-thorns-600: #7a2929;
+  --color-crown-of-thorns-700: #7a2929;
+  --color-crown-of-thorns-800: #7a2929;
+  --color-crown-of-thorns-900: #7a2929;
+  --color-crown-of-thorns-950: #7a2929;
+
+  --color-janna-50: #f0e6cb;
+  --color-janna-100: #f0e6cb;
+  --color-janna-200: #f0e6cb;
+  --color-janna-300: #f0e6cb;
+  --color-janna-400: #f0e6cb;
+  --color-janna-500: #f0e6cb;
+  --color-janna-600: #f0e6cb;
+  --color-janna-700: #f0e6cb;
+  --color-janna-800: #f0e6cb;
+  --color-janna-900: #f0e6cb;
+  --color-janna-950: #f0e6cb;
+}
+
+html,
+body {
+  @apply bg-janna-500 text-plantation-500;
+}
+
+h1 {
+  @apply text-4xl text-crown-of-thorns-500 font-semibold text-center md:text-left;
+  font-family: "Apice", "sans-serif";
+}
+
+h2 {
+  @apply text-2xl font-semibold text-crown-of-thorns-500 text-center md:text-left;
+  font-family: "Apice", "sans-serif";
+}
+
+p {
+  @apply text-lg font-light;
+}

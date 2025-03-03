@@ -24,7 +24,7 @@ pnpm-lock.yaml #Should be committed, but listed here for clarity
 
 # Logs and Temporary Files #
 ############################
-*.log
+
 tmp
 temp
 *.tmp
@@ -58,6 +58,20 @@ Dockerfile*
 dist/
 nuxt.config.dev.js
 nuxt.config.staging.js
+# Nuxt dev/build outputs
+.output
+.data
+.nuxt
+.nitro
+.cache
+dist
+
+
+# Logs
+logs
+
+# Misc
+.fleet
 
 # Fastify Specific #
 ######################
