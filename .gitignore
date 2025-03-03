@@ -1,0 +1,71 @@
+# General OS generated files #
+###############################
+.DS_Store
+Thumbs.db
+ehthumbs.db
+*.stackdump
+*.idea
+*.vscode
+
+# Node Modules and Package Manager Files #
+#########################################
+node_modules
+/dist
+.pnpm
+.nuxt
+.output
+.nitro
+.firebase/emulators
+
+# PNPM Specific #
+.modules.yaml
+pnpm-lock.yaml #Should be committed, but listed here for clarity
+.pnpm-debug.log
+
+# Logs and Temporary Files #
+############################
+*.log
+tmp
+temp
+*.tmp
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor and IDE Specific #
+#############################
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Docker Specific #
+####################
+/docker-compose.override.yml
+/docker-compose.prod.yml
+/docker-compose.dev.yml
+/docker-compose.local.yml
+/docker-compose.ci.yml
+.dockerenv
+.docketignore
+Dockerfile*
+
+# Nuxt.js Specific #
+######################
+.nuxt*
+dist/
+nuxt.config.dev.js
+nuxt.config.staging.js
+
+# Fastify Specific #
+######################
+#Add specific generated files or logs that relate to fastify
+
+# Environment Variables #
+###########################
+.env
+*.env.local
+*.env.*
+!*.env.example # Except for the example file
