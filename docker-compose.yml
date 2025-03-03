@@ -1,0 +1,22 @@
+services:
+  backend:
+    build: ./apps/backend
+    container_name: strawberry_backend
+    restart: always
+    ports:
+      - "4000:4000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    command: ["pnpm", "start"]
+
+  frontend:
+    build: ./apps/frontend
+    container_name: strawberry_frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+    environment:
+      API_BASE_URL: "http://backend:4000"
+    command: ["pnpm", "dev"]
