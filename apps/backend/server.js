@@ -5,10 +5,7 @@ import dataRoutes from "./src/routes/dataRoutes.js";
 const fastify = Fastify({ logger: true });
 
 fastify.register(cors, {
-  origin: [
-    "https://yield-dashboard-production.up.railway.app",
-    "https://rinal.dev/yield-dashboard",
-  ], // Replace with your actual Vercel domain
+  origin: "https://yield-dashboard-frontend.vercel.app",
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
