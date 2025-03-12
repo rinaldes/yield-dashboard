@@ -19,20 +19,21 @@ model Location {
   LocationDetail LocationDetail[]
   Harvest        Harvest[]
   forecasts      Forecast[]
+  Brix           Brix[]
 }
 
 model LocationDetail {
-  id            Int      @id @default(autoincrement())
+  id            Int       @id @default(autoincrement())
   location_id   Int
   total_plants  Int
   planting_date DateTime?
-  width         Int      @default(0)
-  height        Int      @default(0)
-  length        Int      @default(0)
-  area          Int      @default(0)
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @default(now()) @map("updated_at")
-  location      Location @relation(fields: [location_id], references: [id])
+  width         Int       @default(0)
+  height        Int       @default(0)
+  length        Int       @default(0)
+  area          Int       @default(0)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @default(now()) @map("updated_at")
+  location      Location  @relation(fields: [location_id], references: [id])
 }
 
 model Pic {
@@ -42,7 +43,8 @@ model Pic {
   createdAt DateTime   @default(now()) @map("created_at")
   updatedAt DateTime   @default(now()) @map("updated_at")
   Harvest   Harvest[]
-  forecasts Forecast[]
+  Forecasts Forecast[]
+  Brix      Brix[]
 }
 
 model Harvest {
@@ -107,27 +109,27 @@ model Grade {
 }
 
 model VariantGrade {
-  id               Int               @id @default(autoincrement())
-  variant_id       Int
-  grade_id         Int
-  is_active        Boolean           @default(true)
-  createdAt        DateTime          @default(now()) @map("created_at")
-  updatedAt        DateTime          @default(now()) @map("updated_at")
-  variant          Variant           @relation(fields: [variant_id], references: [id])
-  grade            Grade             @relation(fields: [grade_id], references: [id])
-  YieldVariant     YieldVariant[]
+  id           Int            @id @default(autoincrement())
+  variant_id   Int
+  grade_id     Int
+  is_active    Boolean        @default(true)
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @default(now()) @map("updated_at")
+  variant      Variant        @relation(fields: [variant_id], references: [id])
+  grade        Grade          @relation(fields: [grade_id], references: [id])
+  YieldVariant YieldVariant[]
 }
 
 model Package {
-  id          Int       @id @default(autoincrement())
-  name        String
-  variant_id  Int
-  description String?
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @default(now()) @map("updated_at")
-  variant     Variant   @relation(fields: [variant_id], references: [id])
-  Packing     Packing[]
-  is_active   Boolean   @default(true)
+  id               Int               @id @default(autoincrement())
+  name             String
+  variant_id       Int
+  description      String?
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @default(now()) @map("updated_at")
+  variant          Variant           @relation(fields: [variant_id], references: [id])
+  Packing          Packing[]
+  is_active        Boolean           @default(true)
   forecastVariants ForecastVariant[]
 }
 
@@ -191,13 +193,39 @@ model Forecast {
 }
 
 model ForecastVariant {
-  id               Int          @id @default(autoincrement())
-  forecast_id      String
-  package_id Int
-  quantity         Int
-  is_active        Boolean      @default(true)
-  createdAt        DateTime     @default(now()) @map("created_at")
-  updatedAt        DateTime     @default(now()) @map("updated_at")
-  forecast         Forecast     @relation(fields: [forecast_id], references: [id])
-  package          Package      @relation(fields: [package_id], references: [id])
+  id          Int      @id @default(autoincrement())
+  forecast_id String
+  package_id  Int
+  quantity    Int
+  is_active   Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @map("updated_at")
+  forecast    Forecast @relation(fields: [forecast_id], references: [id])
+  package     Package  @relation(fields: [package_id], references: [id])
+}
+
+enum BrixSource {
+  market
+  reject
+  none
+}
+
+enum BrixType {
+  tip
+  deep
+  all
+}
+
+model Brix {
+  id          Int        @id @default(autoincrement())
+  location_id Int
+  pic_id      Int
+  from        BrixSource @default(none)
+  type        BrixType?
+  brix_score  Float
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @default(now()) @map("updated_at")
+  is_active   Boolean    @default(true)
+  location    Location   @relation(fields: [location_id], references: [id])
+  pic         Pic        @relation(fields: [pic_id], references: [id])
 }

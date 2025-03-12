@@ -4,8 +4,8 @@ import type { FormSubmitEvent } from "@nuxt/ui";
 
 const schema = z.object({
   datetime: z.string(),
-  harvestLocation: z.string(),
-  pic: z.string(),
+  harvestLocation: z.number(),
+  pic: z.number(),
   siklus: z.optional(z.number()),
   packGradeA: z.optional(z.number()),
   packGradeA15pcs: z.optional(z.number()),
@@ -47,8 +47,8 @@ type RejectSchema = z.output<typeof rejectSchema>;
 const state = reactive<Partial<Schema>>({
   datetime: currentDateTime.value,
   siklus: undefined,
-  harvestLocation: "",
-  pic: "",
+  harvestLocation: undefined,
+  pic: undefined,
   packGradeA: undefined,
   packGradeA15pcs: undefined,
   frozenWeight: undefined,
@@ -92,117 +92,40 @@ const items = ref([
   },
 ]);
 
-const tabs = ref([
-  {
-    label: "Packing",
-    slot: "packing",
-  },
-  {
-    label: "Reject",
-    slot: "reject",
-  },
-  {
-    label: "Yield",
-    slot: "yield",
-  },
-]);
-// dummy data
-const location = [
-  {
-    value: "gh1",
-    label: "GH1",
-  },
-  {
-    value: "gh2",
-    label: "GH2",
-  },
-  {
-    value: "gh3",
-    label: "GH3",
-  },
-  {
-    value: "gh4",
-    label: "GH4",
-  },
-  {
-    value: "gh5",
-    label: "GH5",
-  },
-  {
-    value: "outdoor1",
-    label: "Outdoor 1",
-  },
-  {
-    value: "outdoor2",
-    label: "Outdoor 2",
-  },
-  {
-    value: "outdoor3",
-    label: "Outdoor 3",
-  },
-  {
-    value: "outdoor4",
-    label: "Outdoor 4",
-  },
-  {
-    value: "outdoor5",
-    label: "Outdoor 5",
-  },
-  {
-    value: "outdoor6",
-    label: "Outdoor 6",
-  },
-  {
-    value: "outdoor7",
-    label: "Outdoor 7",
-  },
-];
-
-const pic = [
-  {
-    value: "budi",
-    label: "Budi",
-  },
-  {
-    value: "toni",
-    label: "Toni",
-  },
-];
-
-// dummy end
 const toast = useToast();
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-  try {
-    const response = await $fetch(
-      `${useRuntimeConfig().public.apiBase}/api/v1/harvest`,
-      {
-        method: "POST",
-        body: {
-          datetime: state.datetime,
-          harvestLocation: state.harvestLocation,
-          pic: state.pic,
-          packGradeA: state.packGradeA,
-          packGradeA15pcs: state.packGradeA15pcs,
-          frozenWeight: state.frozenWeight,
-          wastedWeight: state.wastedWeight,
-          packGradeB: state.packGradeB,
-          momoka3pcs: state.momoka3pcs,
-          momoka6pcs: state.momoka6pcs,
-          momokaA11: state.momokaA11,
-          momokaA15: state.momokaA15,
-          momokaGradeB: state.momokaGradeB,
-          hatsuhana3pcs: state.hatsuhana3pcs,
-          hatsuhana4pcs: state.hatsuhana4pcs,
-          hatsuhana6pcs: state.hatsuhana6pcs,
-          giftbox: state.giftbox,
-          total: state.total,
-          totalExMomoka: state.totalExMomoka,
-        },
-      }
-    );
+  console.log(event.data);
+  // try {
+  //   const response = await $fetch(
+  //     `${useRuntimeConfig().public.apiBase}/api/v1/harvest`,
+  //     {
+  //       method: "POST",
+  //       body: {
+  //         datetime: state.datetime,
+  //         harvestLocation: state.harvestLocation,
+  //         pic: state.pic,
+  //         packGradeA: state.packGradeA,
+  //         packGradeA15pcs: state.packGradeA15pcs,
+  //         frozenWeight: state.frozenWeight,
+  //         wastedWeight: state.wastedWeight,
+  //         packGradeB: state.packGradeB,
+  //         momoka3pcs: state.momoka3pcs,
+  //         momoka6pcs: state.momoka6pcs,
+  //         momokaA11: state.momokaA11,
+  //         momokaA15: state.momokaA15,
+  //         momokaGradeB: state.momokaGradeB,
+  //         hatsuhana3pcs: state.hatsuhana3pcs,
+  //         hatsuhana4pcs: state.hatsuhana4pcs,
+  //         hatsuhana6pcs: state.hatsuhana6pcs,
+  //         giftbox: state.giftbox,
+  //         total: state.total,
+  //         totalExMomoka: state.totalExMomoka,
+  //       },
+  //     }
+  //   );
 
-    navigateTo("/dashboard/harvest");
-  } catch (error) {}
+  //   navigateTo("/dashboard/harvest");
+  // } catch (error) {}
 }
 
 const momokaSchema = z.object({
@@ -350,22 +273,12 @@ watch(
         </UFormField>
         <UFormField label="Lokasi Panen" name="harvestLocation">
           <Input>
-            <USelect
-              v-model="state.harvestLocation"
-              variant="none"
-              :items="location"
-              class="w-full"
-            />
+            <AtomLocationSelect v-model="state.harvestLocation" />
           </Input>
         </UFormField>
         <UFormField label="Pengisi Data" name="pic">
           <Input>
-            <USelect
-              :items="pic"
-              v-model="state.pic"
-              variant="none"
-              class="w-full"
-            />
+            <AtomPicSelect v-model="state.pic" />
           </Input>
         </UFormField>
         <UFormField label="Siklus" name="siklus">
@@ -707,73 +620,77 @@ watch(
       </div>
 
       <div class="py-6">
-        <h2>Yield</h2>
+        <h2 class="mb-6">Yield</h2>
         <div class="grid grid-cols-1 gap-x-16 xl:grid-cols-2">
           <div class="flex flex-col gap-4">
             <h3>Momoka</h3>
-            <UFormField label="Grade A" name="beratBersih">
-              <Input>
-                <UInput
-                  v-model="stateMomoka.beratBersih"
-                  variant="none"
-                  class="w-full"
-                  type="number"
-                />
-              </Input>
-            </UFormField>
-            <UFormField label="Grade B" name="beratBersih">
-              <Input>
-                <UInput
-                  v-model="stateMomoka.beratBersih"
-                  variant="none"
-                  class="w-full"
-                  type="number"
-                />
-              </Input>
-            </UFormField>
-            <UFormField label="Mix" name="beratBersih">
-              <Input>
-                <UInput
-                  v-model="stateMomoka.beratBersih"
-                  variant="none"
-                  class="w-full"
-                  type="number"
-                />
-              </Input>
-            </UFormField>
+            <div class="grid grid-cols-1 gap-4 xl:grid-cols-3">
+              <UFormField label="Grade A" name="beratBersih">
+                <Input>
+                  <UInput
+                    v-model="stateMomoka.beratBersih"
+                    variant="none"
+                    class="w-full"
+                    type="number"
+                  />
+                </Input>
+              </UFormField>
+              <UFormField label="Grade B" name="beratBersih">
+                <Input>
+                  <UInput
+                    v-model="stateMomoka.beratBersih"
+                    variant="none"
+                    class="w-full"
+                    type="number"
+                  />
+                </Input>
+              </UFormField>
+              <UFormField label="Mix" name="beratBersih">
+                <Input>
+                  <UInput
+                    v-model="stateMomoka.beratBersih"
+                    variant="none"
+                    class="w-full"
+                    type="number"
+                  />
+                </Input>
+              </UFormField>
+            </div>
           </div>
           <div class="flex flex-col gap-4">
             <h3>Tochiotome</h3>
-            <UFormField label="Grade A" name="beratBersih">
-              <Input>
-                <UInput
-                  v-model="stateTochiotome.beratBersih"
-                  variant="none"
-                  class="w-full"
-                  type="number"
-                />
-              </Input>
-            </UFormField>
-            <UFormField label="Grade B" name="beratBersih">
-              <Input>
-                <UInput
-                  v-model="stateTochiotome.beratBersih"
-                  variant="none"
-                  class="w-full"
-                  type="number"
-                />
-              </Input>
-            </UFormField>
-            <UFormField label="Mix" name="beratBersih">
-              <Input>
-                <UInput
-                  v-model="stateMomoka.beratBersih"
-                  variant="none"
-                  class="w-full"
-                  type="number"
-                />
-              </Input>
-            </UFormField>
+            <div class="grid grid-cols-1 gap-4 xl:grid-cols-3">
+              <UFormField label="Grade A" name="beratBersih">
+                <Input>
+                  <UInput
+                    v-model="stateTochiotome.beratBersih"
+                    variant="none"
+                    class="w-full"
+                    type="number"
+                  />
+                </Input>
+              </UFormField>
+              <UFormField label="Grade B" name="beratBersih">
+                <Input>
+                  <UInput
+                    v-model="stateTochiotome.beratBersih"
+                    variant="none"
+                    class="w-full"
+                    type="number"
+                  />
+                </Input>
+              </UFormField>
+              <UFormField label="Mix" name="beratBersih">
+                <Input>
+                  <UInput
+                    v-model="stateMomoka.beratBersih"
+                    variant="none"
+                    class="w-full"
+                    type="number"
+                  />
+                </Input>
+              </UFormField>
+            </div>
           </div>
         </div>
       </div>
