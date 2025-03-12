@@ -13,7 +13,7 @@ export const forecastBaseSchema = {
 export const forecastVariantSchema = {
   id: { type: "integer", minimum: 1 },
   forecast_id: { type: "string" },
-  variant_grade_id: { type: "integer", minimum: 1 },
+  package_id: { type: "integer", minimum: 1 },
   quantity: { type: "integer", minimum: 0 },
   is_active: { type: "boolean" },
   created_at: { type: "string", format: "date-time" },
@@ -34,9 +34,9 @@ export const createForecastSchema = {
         type: "array",
         items: {
           type: "object",
-          required: ["variant_grade_id", "quantity"],
+          required: ["package_id", "quantity"],
           properties: {
-            variant_grade_id: forecastVariantSchema.variant_grade_id,
+            package_id: forecastVariantSchema.package_id,
             quantity: forecastVariantSchema.quantity,
           },
         },

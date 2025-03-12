@@ -116,7 +116,6 @@ model VariantGrade {
   variant          Variant           @relation(fields: [variant_id], references: [id])
   grade            Grade             @relation(fields: [grade_id], references: [id])
   YieldVariant     YieldVariant[]
-  forecastVariants ForecastVariant[]
 }
 
 model Package {
@@ -129,6 +128,7 @@ model Package {
   variant     Variant   @relation(fields: [variant_id], references: [id])
   Packing     Packing[]
   is_active   Boolean   @default(true)
+  forecastVariants ForecastVariant[]
 }
 
 model Reject {
@@ -193,11 +193,11 @@ model Forecast {
 model ForecastVariant {
   id               Int          @id @default(autoincrement())
   forecast_id      String
-  variant_grade_id Int
+  package_id Int
   quantity         Int
   is_active        Boolean      @default(true)
   createdAt        DateTime     @default(now()) @map("created_at")
   updatedAt        DateTime     @default(now()) @map("updated_at")
   forecast         Forecast     @relation(fields: [forecast_id], references: [id])
-  variantGrade     VariantGrade @relation(fields: [variant_grade_id], references: [id])
+  package          Package      @relation(fields: [package_id], references: [id])
 }

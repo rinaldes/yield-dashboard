@@ -3,80 +3,41 @@ import * as z from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui";
 
 const schema = z.object({
-  datetime: z.number(),
-  harvestLocation: z.string(),
-  pic: z.string(),
-  packGradeA: z.optional(z.number()),
-  packGradeA15pcs: z.optional(z.number()),
-  frozenWeight: z.optional(z.number()),
-  wastedWeight: z.optional(z.number()),
-  packGradeB: z.optional(z.number()),
-  momoka3pcs: z.optional(z.number()),
-  momoka6pcs: z.optional(z.number()),
-  momokaA11: z.optional(z.number()),
-  momokaA15: z.optional(z.number()),
-  momokaGradeB: z.optional(z.number()),
-  hatsuhana3pcs: z.optional(z.number()),
-  hatsuhana4pcs: z.optional(z.number()),
-  hatsuhana6pcs: z.optional(z.number()),
-  giftbox: z.optional(z.number()),
-  total: z.number(),
-  totalExMomoka: z.number(),
-});
-
-const rejectSchema = z.object({
-  jamur: z.optional(z.number()),
-  mildew: z.optional(z.number()),
-  jamurHijau: z.optional(z.number()),
-  siput: z.optional(z.number()),
-  cracking: z.optional(z.number()),
-  overripe: z.optional(z.number()),
-  fisik: z.optional(z.number()),
-  hama: z.optional(z.number()),
-  polinasi: z.optional(z.number()),
-  gradeC: z.optional(z.number()),
-  orange: z.optional(z.number()),
+  datetime: z.number().min(0),
+  harvestLocation: z.number(),
+  pic: z.number(),
+  packGradeA: z.optional(z.number().min(0)),
+  packGradeA15pcs: z.optional(z.number().min(0)),
+  momoka3pcs: z.optional(z.number().min(0)),
+  momokaA11: z.optional(z.number().min(0)),
+  momokaA15: z.optional(z.number().min(0)),
+  momokaGradeB: z.optional(z.number().min(0)),
+  hatsuhana3pcs: z.optional(z.number().min(0)),
+  hatsuhana4pcs: z.optional(z.number().min(0)),
+  hatsuhana6pcs: z.optional(z.number().min(0)),
+  total: z.number().min(0),
+  totalExMomoka: z.number().min(0),
 });
 
 const currentDateTime = ref(1);
 
 type Schema = z.output<typeof schema>;
-type RejectSchema = z.output<typeof rejectSchema>;
 
 const state = reactive<Partial<Schema>>({
   datetime: currentDateTime.value,
-  harvestLocation: "",
-  pic: "",
+  harvestLocation: undefined,
+  pic: undefined,
   packGradeA: undefined,
   packGradeA15pcs: undefined,
-  frozenWeight: undefined,
-  wastedWeight: undefined,
-  packGradeB: undefined,
   momoka3pcs: undefined,
-  momoka6pcs: undefined,
   momokaA11: undefined,
   momokaA15: undefined,
   momokaGradeB: undefined,
   hatsuhana3pcs: undefined,
   hatsuhana4pcs: undefined,
   hatsuhana6pcs: undefined,
-  giftbox: undefined,
   total: 0,
   totalExMomoka: 0,
-});
-
-const reject = reactive<Partial<RejectSchema>>({
-  jamur: undefined,
-  mildew: undefined,
-  jamurHijau: undefined,
-  siput: undefined,
-  cracking: undefined,
-  overripe: undefined,
-  fisik: undefined,
-  hama: undefined,
-  polinasi: undefined,
-  gradeC: undefined,
-  orange: undefined,
 });
 
 const items = ref([
@@ -90,78 +51,92 @@ const items = ref([
   },
 ]);
 
-// dummy data
-const location = [
-  {
-    value: "gh1",
-    label: "GH1",
-  },
-  {
-    value: "gh2",
-    label: "GH2",
-  },
-  {
-    value: "gh3",
-    label: "GH3",
-  },
-  {
-    value: "gh4",
-    label: "GH4",
-  },
-  {
-    value: "gh5",
-    label: "GH5",
-  },
-  {
-    value: "outdoor1",
-    label: "Outdoor 1",
-  },
-  {
-    value: "outdoor2",
-    label: "Outdoor 2",
-  },
-  {
-    value: "outdoor3",
-    label: "Outdoor 3",
-  },
-  {
-    value: "outdoor4",
-    label: "Outdoor 4",
-  },
-  {
-    value: "outdoor5",
-    label: "Outdoor 5",
-  },
-  {
-    value: "outdoor6",
-    label: "Outdoor 6",
-  },
-  {
-    value: "outdoor7",
-    label: "Outdoor 7",
-  },
-];
-
-const pic = [
-  {
-    value: "budi",
-    label: "Budi",
-  },
-  {
-    value: "toni",
-    label: "Toni",
-  },
-];
-
-// dummy end
 const toast = useToast();
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-  toast.add({
-    title: "Success",
-    description: "The form has been submitted.",
-    color: "success",
-  });
-  console.log(event.data);
+  const firstDayOfWeek = new Date();
+  firstDayOfWeek.setDate(
+    firstDayOfWeek.getDate() - firstDayOfWeek.getDay() + 1
+  );
+  firstDayOfWeek.setDate(firstDayOfWeek.getDate() + event.data.datetime * 7);
+
+  const payload = {
+    week: firstDayOfWeek.toISOString(),
+    location_id: event.data.harvestLocation,
+    pic_id: event.data.pic,
+    total: event.data.total,
+    total_ex_momoka: event.data.totalExMomoka,
+    variants: [
+      {
+        package_id: 6,
+        quantity: event.data.packGradeA,
+      },
+      {
+        package_id: 7,
+        quantity: event.data.packGradeA15pcs,
+      },
+      {
+        package_id: 1,
+        quantity: event.data.momoka3pcs,
+      },
+      {
+        package_id: 3,
+        quantity: event.data.momokaA11,
+      },
+      {
+        package_id: 4,
+        quantity: event.data.momokaA15,
+      },
+      {
+        package_id: 5,
+        quantity: event.data.momokaGradeB,
+      },
+      {
+        package_id: 9,
+        quantity: event.data.hatsuhana3pcs,
+      },
+      {
+        package_id: 10,
+        quantity: event.data.hatsuhana4pcs,
+      },
+      {
+        package_id: 11,
+        quantity: event.data.hatsuhana6pcs,
+      },
+    ],
+  };
+  try {
+    const response = await $fetch(
+      `${useRuntimeConfig().public.apiBase}/api/v1/forecasts`,
+      {
+        method: "POST",
+        body: payload,
+      }
+    );
+    toast.add({
+      title: "Success",
+      description: "Forecast created successfully",
+      color: "success",
+    });
+    state.harvestLocation = undefined;
+    state.pic = undefined;
+    state.packGradeA = undefined;
+    state.packGradeA15pcs = undefined;
+    state.momoka3pcs = undefined;
+    state.momokaA11 = undefined;
+    state.momokaA15 = undefined;
+    state.momokaGradeB = undefined;
+    state.hatsuhana3pcs = undefined;
+    state.hatsuhana4pcs = undefined;
+    state.hatsuhana6pcs = undefined;
+    state.total = 0;
+    state.totalExMomoka = 0;
+  } catch (error) {
+    toast.add({
+      title: "Error",
+      description: "Failed to create forecast",
+      color: "error",
+    });
+  }
 }
 
 onMounted(() => {
@@ -178,75 +153,35 @@ watch(
   () => [
     state.packGradeA,
     state.packGradeA15pcs,
-    state.packGradeB,
     state.momoka3pcs,
-    state.momoka6pcs,
     state.momokaA11,
     state.momokaA15,
     state.momokaGradeB,
     state.hatsuhana3pcs,
     state.hatsuhana4pcs,
     state.hatsuhana6pcs,
-    state.giftbox,
   ],
   () => {
     const totalValue =
       (Number(state.packGradeA) || 0) +
       (Number(state.packGradeA15pcs) || 0) +
-      (Number(state.packGradeB) || 0) +
       (Number(state.momoka3pcs) || 0) +
-      (Number(state.momoka6pcs) || 0) +
       (Number(state.momokaA11) || 0) +
       (Number(state.momokaA15) || 0) +
       (Number(state.momokaGradeB) || 0) +
       (Number(state.hatsuhana3pcs) || 0) +
       (Number(state.hatsuhana4pcs) || 0) +
-      (Number(state.hatsuhana6pcs) || 0) +
-      (Number(state.giftbox) || 0);
+      (Number(state.hatsuhana6pcs) || 0);
 
     const totalExMomokaValue =
       totalValue -
       ((Number(state.momoka3pcs) || 0) +
-        (Number(state.momoka6pcs) || 0) +
         (Number(state.momokaA11) || 0) +
         (Number(state.momokaA15) || 0) +
         (Number(state.momokaGradeB) || 0));
 
     state.total = totalValue;
     state.totalExMomoka = totalExMomokaValue;
-  },
-  { immediate: true }
-);
-
-watch(
-  () => [
-    reject.jamur,
-    reject.mildew,
-    reject.jamurHijau,
-    reject.siput,
-    reject.cracking,
-    reject.overripe,
-    reject.fisik,
-    reject.hama,
-    reject.polinasi,
-    reject.gradeC,
-    reject.orange,
-  ],
-  () => {
-    const totalReject =
-      (Number(reject.jamur) || 0) +
-      (Number(reject.mildew) || 0) +
-      (Number(reject.jamurHijau) || 0) +
-      (Number(reject.siput) || 0) +
-      (Number(reject.cracking) || 0) +
-      (Number(reject.overripe) || 0) +
-      (Number(reject.fisik) || 0) +
-      (Number(reject.hama) || 0) +
-      (Number(reject.polinasi) || 0) +
-      (Number(reject.gradeC) || 0) +
-      (Number(reject.orange) || 0);
-
-    state.wastedWeight = totalReject;
   },
   { immediate: true }
 );
@@ -272,22 +207,12 @@ watch(
         </UFormField>
         <UFormField label="Lokasi Panen" name="harvestLocation">
           <Input>
-            <USelect
-              v-model="state.harvestLocation"
-              variant="none"
-              :items="location"
-              class="w-full"
-            />
+            <AtomLocationSelect v-model="state.harvestLocation" />
           </Input>
         </UFormField>
         <UFormField label="Pengisi Data" name="pic">
           <Input>
-            <USelect
-              :items="pic"
-              v-model="state.pic"
-              variant="none"
-              class="w-full"
-            />
+            <AtomPicSelect v-model="state.pic" />
           </Input>
         </UFormField>
       </div>

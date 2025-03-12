@@ -3,7 +3,7 @@ import fp from "fastify-plugin";
 async function forecastRoutes(fastify) {
   const { prisma } = fastify;
 
-  fastify.post("/forecasts", async (request, reply) => {
+  fastify.post("/api/v1/forecasts", async (request, reply) => {
     const { week, location_id, pic_id, total, total_ex_momoka, variants } =
       request.body;
 
@@ -22,7 +22,7 @@ async function forecastRoutes(fastify) {
         await tx.forecastVariant.createMany({
           data: variants.map((variant) => ({
             forecast_id: forecast.id,
-            variant_grade_id: variant.variant_grade_id,
+            package_id: variant.package_id,
             quantity: variant.quantity,
           })),
         });
@@ -34,7 +34,7 @@ async function forecastRoutes(fastify) {
     return reply.code(201).send(forecast);
   });
 
-  fastify.get("/forecasts", async (request, reply) => {
+  fastify.get("/api/v1/forecasts", async (request, reply) => {
     const forecasts = await prisma.forecast.findMany({
       where: { is_active: true },
       include: {
@@ -42,12 +42,7 @@ async function forecastRoutes(fastify) {
         pic: true,
         forecastVariants: {
           include: {
-            variantGrade: {
-              include: {
-                variant: true,
-                grade: true,
-              },
-            },
+            package: true,
           },
         },
       },
@@ -56,7 +51,7 @@ async function forecastRoutes(fastify) {
     return reply.send(forecasts);
   });
 
-  fastify.get("/forecasts/:id", async (request, reply) => {
+  fastify.get("/api/v1/forecasts/:id", async (request, reply) => {
     const { id } = request.params;
 
     const forecast = await prisma.forecast.findUnique({
@@ -66,12 +61,7 @@ async function forecastRoutes(fastify) {
         pic: true,
         forecastVariants: {
           include: {
-            variantGrade: {
-              include: {
-                variant: true,
-                grade: true,
-              },
-            },
+            package: true,
           },
         },
       },
@@ -84,7 +74,7 @@ async function forecastRoutes(fastify) {
     return reply.send(forecast);
   });
 
-  fastify.put("/forecasts/:id", async (request, reply) => {
+  fastify.put("/api/v1/forecasts/:id", async (request, reply) => {
     const { id } = request.params;
     const { week, location_id, pic_id, total, total_ex_momoka, variants } =
       request.body;
@@ -109,7 +99,7 @@ async function forecastRoutes(fastify) {
         await tx.forecastVariant.createMany({
           data: variants.map((variant) => ({
             forecast_id: id,
-            variant_grade_id: variant.variant_grade_id,
+            package_id: variant.package_id,
             quantity: variant.quantity,
           })),
         });
@@ -121,7 +111,7 @@ async function forecastRoutes(fastify) {
     return reply.send(forecast);
   });
 
-  fastify.delete("/forecasts/:id", async (request, reply) => {
+  fastify.delete("/api/v1/forecasts/:id", async (request, reply) => {
     const { id } = request.params;
 
     await prisma.$transaction([
