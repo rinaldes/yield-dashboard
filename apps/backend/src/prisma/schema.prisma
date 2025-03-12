@@ -1,0 +1,203 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Location {
+  id             Int              @id @default(autoincrement())
+  name           String
+  is_indoors     Boolean          @default(false)
+  is_active      Boolean          @default(true)
+  description    String?
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @default(now()) @map("updated_at")
+  LocationDetail LocationDetail[]
+  Harvest        Harvest[]
+  forecasts      Forecast[]
+}
+
+model LocationDetail {
+  id            Int      @id @default(autoincrement())
+  location_id   Int
+  total_plants  Int
+  planting_date DateTime?
+  width         Int      @default(0)
+  height        Int      @default(0)
+  length        Int      @default(0)
+  area          Int      @default(0)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @default(now()) @map("updated_at")
+  location      Location @relation(fields: [location_id], references: [id])
+}
+
+model Pic {
+  id        Int        @id @default(autoincrement())
+  name      String
+  is_active Boolean    @default(true)
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @default(now()) @map("updated_at")
+  Harvest   Harvest[]
+  forecasts Forecast[]
+}
+
+model Harvest {
+  id          Int       @id @default(autoincrement())
+  datetime    DateTime
+  location_id Int
+  pic_id      Int
+  siklus      Int?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @default(now()) @map("updated_at")
+  location    Location  @relation(fields: [location_id], references: [id])
+  pic         Pic       @relation(fields: [pic_id], references: [id])
+  Packing     Packing[]
+  Reject      Reject[]
+  Yield       Yield[]
+  is_active   Boolean   @default(true)
+}
+
+model Packing {
+  id         Int      @id @default(autoincrement())
+  harvest_id Int
+  package_id Int
+  quantity   Int
+  is_active  Boolean  @default(true)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @default(now()) @map("updated_at")
+  harvest    Harvest  @relation(fields: [harvest_id], references: [id])
+  package    Package  @relation(fields: [package_id], references: [id])
+}
+
+model Fruit {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  is_active   Boolean   @default(true)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @default(now()) @map("updated_at")
+  Variant     Variant[]
+}
+
+model Variant {
+  id           Int            @id @default(autoincrement())
+  name         String
+  description  String?
+  fruit_id     Int
+  is_active    Boolean        @default(true)
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @default(now()) @map("updated_at")
+  fruit        Fruit          @relation(fields: [fruit_id], references: [id])
+  VariantGrade VariantGrade[]
+  Package      Package[]
+}
+
+model Grade {
+  id           Int            @id @default(autoincrement())
+  name         String
+  description  String?
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @default(now()) @map("updated_at")
+  VariantGrade VariantGrade[]
+  is_active    Boolean        @default(true)
+}
+
+model VariantGrade {
+  id               Int               @id @default(autoincrement())
+  variant_id       Int
+  grade_id         Int
+  is_active        Boolean           @default(true)
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @default(now()) @map("updated_at")
+  variant          Variant           @relation(fields: [variant_id], references: [id])
+  grade            Grade             @relation(fields: [grade_id], references: [id])
+  YieldVariant     YieldVariant[]
+  forecastVariants ForecastVariant[]
+}
+
+model Package {
+  id          Int       @id @default(autoincrement())
+  name        String
+  variant_id  Int
+  description String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @default(now()) @map("updated_at")
+  variant     Variant   @relation(fields: [variant_id], references: [id])
+  Packing     Packing[]
+  is_active   Boolean   @default(true)
+}
+
+model Reject {
+  id         Int          @id @default(autoincrement())
+  harvest_id Int
+  reason_id  Int
+  quantity   Int
+  createdAt  DateTime     @default(now()) @map("created_at")
+  updatedAt  DateTime     @default(now()) @map("updated_at")
+  harvest    Harvest      @relation(fields: [harvest_id], references: [id])
+  reason     RejectReason @relation(fields: [reason_id], references: [id])
+  is_active  Boolean      @default(true)
+}
+
+model RejectReason {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @map("updated_at")
+  Reject      Reject[]
+  is_active   Boolean  @default(true)
+}
+
+model Yield {
+  id           Int            @id @default(autoincrement())
+  harvest_id   Int
+  is_active    Boolean        @default(true)
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @default(now()) @map("updated_at")
+  harvest      Harvest        @relation(fields: [harvest_id], references: [id])
+  YieldVariant YieldVariant[]
+}
+
+model YieldVariant {
+  id               Int          @id @default(autoincrement())
+  yield_id         Int
+  variant_grade_id Int
+  quantity         Int
+  is_active        Boolean      @default(true)
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @default(now()) @map("updated_at")
+  yield            Yield        @relation(fields: [yield_id], references: [id])
+  variantGrade     VariantGrade @relation(fields: [variant_grade_id], references: [id])
+}
+
+model Forecast {
+  id               String            @id @default(cuid())
+  week             DateTime
+  location_id      Int
+  pic_id           Int
+  total            Float
+  total_ex_momoka  Float
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @default(now()) @map("updated_at")
+  location         Location          @relation(fields: [location_id], references: [id])
+  pic              Pic               @relation(fields: [pic_id], references: [id])
+  is_active        Boolean           @default(true)
+  forecastVariants ForecastVariant[]
+}
+
+model ForecastVariant {
+  id               Int          @id @default(autoincrement())
+  forecast_id      String
+  variant_grade_id Int
+  quantity         Int
+  is_active        Boolean      @default(true)
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @default(now()) @map("updated_at")
+  forecast         Forecast     @relation(fields: [forecast_id], references: [id])
+  variantGrade     VariantGrade @relation(fields: [variant_grade_id], references: [id])
+}

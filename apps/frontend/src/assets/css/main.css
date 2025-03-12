@@ -58,6 +58,10 @@ h2 {
   font-family: "Apice", "sans-serif";
 }
 
+h3 {
+  @apply text-xl font-semibold text-crown-of-thorns-500 text-center md:text-left;
+}
+
 p {
   @apply text-lg font-light;
 }
