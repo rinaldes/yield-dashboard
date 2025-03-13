@@ -4,7 +4,7 @@ import { getPaginationRowModel } from "@tanstack/vue-table";
 import type { TableColumn } from "@nuxt/ui";
 import { debounce } from "lodash-es";
 const UButton = resolveComponent("UButton");
-const { ageCalculator, formatToWIB } = useDateTime();
+const { formatToWIB } = useDateTime();
 
 import * as z from "zod";
 type Forecast = {
@@ -36,28 +36,6 @@ const { data, status, refresh } = await useFetch<Forecast[]>(
     default: () => [],
   }
 );
-
-const editingForecast = ref<Forecast | null>(null);
-const isPopupOpen = ref(false);
-
-const saveForecast = async () => {
-  if (!editingForecast.value) return;
-  try {
-    await $fetch(
-      `${useRuntimeConfig().public.apiBase}/api/v1/forecasts/${
-        editingForecast.value.id
-      }`,
-      {
-        method: "PUT",
-        body: editingForecast.value,
-      }
-    );
-    isPopupOpen.value = false;
-    refresh();
-  } catch (error) {
-    console.log(error);
-  }
-};
 
 const columns: TableColumn<Forecast>[] = [
   {
@@ -130,10 +108,8 @@ const columns: TableColumn<Forecast>[] = [
           icon: "lucide:pencil",
           color: "neutral",
           variant: "ghost",
-          onClick: () => {
-            editingForecast.value = row.original;
-            isPopupOpen.value = true;
-          },
+          onClick: () =>
+            navigateTo(`/dashboard/forecast/form/${row.original.id}`),
         }),
         h(UButton, {
           label: "Remove",
@@ -217,20 +193,5 @@ const table = ref();
         />
       </div>
     </div>
-
-    <UModal v-model:open="isPopupOpen" class="w-fit px-8">
-      <template #content>
-        <div v-if="editingForecast" class="p-4 mx-auto">
-          <h2 class="text-lg font-semibold mb-4">Update Forecast</h2>
-          <UForm :schema="schema" :state="editingForecast" class="space-y-4">
-            <!-- Add form fields here -->
-            <div class="flex justify-end space-x-2">
-              <UButton label="Cancel" @click="isPopupOpen = false" />
-              <UButton label="Save" color="primary" @click="saveForecast" />
-            </div>
-          </UForm>
-        </div>
-      </template>
-    </UModal>
   </div>
 </template>
