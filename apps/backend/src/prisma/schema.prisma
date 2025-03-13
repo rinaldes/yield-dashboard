@@ -55,6 +55,8 @@ model Harvest {
   siklus      Int?
   total       Int
   total_ex_momoka Int
+  frozen_weight Int?
+  wasted_weight Int?
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @default(now()) @map("updated_at")
   location    Location  @relation(fields: [location_id], references: [id])

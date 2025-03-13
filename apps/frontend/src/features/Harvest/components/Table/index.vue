@@ -8,6 +8,9 @@ import type { Harvest } from "../../type";
 const UButton = resolveComponent("UButton");
 const { formatToWIB } = useDateTime();
 
+const editingHarvest = ref<Harvest | null>(null);
+const isPopupOpen = ref(false);
+
 const { data, status, refresh } = defineProps<{
   data: Harvest[];
   status: string;
@@ -101,6 +104,28 @@ const columns: TableColumn<Harvest>[] = [
   },
 ];
 
+const saveHarvest = async () => {
+  if (!editingHarvest.value) return;
+  try {
+    const payload = {
+      ...editingHarvest.value,
+    };
+    await $fetch(
+      `${useRuntimeConfig().public.apiBase}/api/v1/brix/${
+        editingHarvest.value.id
+      }`,
+      {
+        method: "PUT",
+        body: payload,
+      }
+    );
+    isPopupOpen.value = false;
+    refresh();
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 const pagination = ref({
   pageIndex: 0,
   pageSize: 10,
@@ -147,5 +172,17 @@ const expanded = ref({});
         @update:page="(p:any) => table?.tableApi?.setPageIndex(p - 1)"
       />
     </div>
+    <UModal v-model:open="isPopupOpen" class="w-fit px-8">
+      <template #content>
+        <div v-if="editingHarvest" class="p-4 mx-auto">
+          <h2 class="text-lg font-semibold mb-4">Update Harvest</h2>
+
+          <div class="flex justify-end space-x-2">
+            <UButton label="Cancel" @click="isPopupOpen = false" />
+            <UButton label="Save" color="primary" @click="saveHarvest" />
+          </div>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>

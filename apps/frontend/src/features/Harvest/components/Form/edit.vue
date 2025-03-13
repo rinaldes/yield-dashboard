@@ -7,10 +7,19 @@ import type { Harvest } from "../../type";
 const toast = useToast();
 const currentDateTime = ref("");
 
+const route = useRoute();
+const harvestId = computed(() => route.params.id);
+
+const { data: harvestData } = await useFetch<any>(
+  `${useRuntimeConfig().public.apiBase}/api/v1/harvest/${harvestId.value}`,
+  {
+    key: `harvest-${harvestId.value}`,
+    default: () => ({} as Harvest),
+  }
+);
+
 const { data, status, refresh } = await useFetch<Harvest[]>(
-  `${
-    useRuntimeConfig().public.apiBase
-  }/api/v1/harvest?include=location,pic,Packing,Reject,Yield`,
+  `${useRuntimeConfig().public.apiBase}/api/v1/harvest`,
   {
     key: "table-harvest",
     lazy: true,
@@ -77,17 +86,134 @@ const items = ref([
   },
 ]);
 
+onMounted(() => {
+  if (harvestData.value) {
+    const date = new Date(harvestData.value.datetime);
+    date.setHours(date.getHours() + 7);
+    state.datetime = date.toISOString().slice(0, 16);
+    currentDateTime.value = state.datetime;
+
+    state.harvestLocation = harvestData.value.location_id;
+    state.pic = harvestData.value.pic_id;
+    state.siklus = harvestData.value.siklus;
+    state.total = harvestData.value.total;
+    state.totalExMomoka = harvestData.value.total_ex_momoka;
+    state.frozenWeight = harvestData.value.frozen_weight;
+    state.wastedWeight = harvestData.value.wasted_weight;
+
+    // Populate packing data
+    harvestData.value.Packing.forEach((pack: any) => {
+      switch (pack.package_id) {
+        case 1:
+          state.momoka3pcs = pack.quantity;
+          break;
+        case 2:
+          state.momoka6pcs = pack.quantity;
+          break;
+        case 3:
+          state.momokaA11 = pack.quantity;
+          break;
+        case 4:
+          state.momokaA15 = pack.quantity;
+          break;
+        case 5:
+          state.momokaGradeB = pack.quantity;
+          break;
+        case 6:
+          state.packGradeA = pack.quantity;
+          break;
+        case 7:
+          state.packGradeA15pcs = pack.quantity;
+          break;
+        case 8:
+          state.packGradeB = pack.quantity;
+          break;
+        case 9:
+          state.hatsuhana3pcs = pack.quantity;
+          break;
+        case 10:
+          state.hatsuhana4pcs = pack.quantity;
+          break;
+        case 11:
+          state.hatsuhana6pcs = pack.quantity;
+          break;
+        case 12:
+          state.giftbox = pack.quantity;
+          break;
+      }
+    });
+
+    // Populate reject data
+    harvestData.value.Reject.forEach((rejecto: any) => {
+      switch (rejecto.reason_id) {
+        case 1:
+          reject.jamur = rejecto.quantity;
+          break;
+        case 2:
+          reject.mildew = rejecto.quantity;
+          break;
+        case 3:
+          reject.jamurHijau = rejecto.quantity;
+          break;
+        case 4:
+          reject.siput = rejecto.quantity;
+          break;
+        case 5:
+          reject.cracking = rejecto.quantity;
+          break;
+        case 6:
+          reject.overripe = rejecto.quantity;
+          break;
+        case 7:
+          reject.fisik = rejecto.quantity;
+          break;
+        case 8:
+          reject.hama = rejecto.quantity;
+          break;
+        case 9:
+          reject.polinasi = rejecto.quantity;
+          break;
+        case 10:
+          reject.gradeC = rejecto.quantity;
+          break;
+        case 11:
+          reject.orange = rejecto.quantity;
+          break;
+      }
+    });
+    // Populate yield data
+    harvestData.value.Yield.forEach((yieldItem: any) => {
+      switch (yieldItem.variant_grade_id) {
+        case 1:
+          yieldState.momokaGradeMix = yieldItem.quantity;
+          break;
+        case 2:
+          yieldState.tochiotomeGradeA = yieldItem.quantity;
+          break;
+        case 3:
+          yieldState.tochiotomeGradeB = yieldItem.quantity;
+          break;
+        case 4:
+          yieldState.tochiotomeGradeMix = yieldItem.quantity;
+          break;
+      }
+    });
+  }
+});
+
 async function onSubmit(event: FormSubmitEvent<Schema>) {
   const ensureNumber = (value: number | undefined) => Number(value) || 0;
 
   try {
     const payload = {
-      datetime: event.data.datetime,
+      datetime: new Date(event.data.datetime).toISOString(),
       location_id: event.data.harvestLocation,
       pic_id: event.data.pic,
       siklus: event.data.siklus,
       total: event.data.total,
       total_ex_momoka: event.data.totalExMomoka,
+      frozen_weight: event.data.frozenWeight,
+      wasted_weight: event.data.wastedWeight,
       Packing: [
         {
           package_id: 1,
@@ -211,69 +337,24 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         },
       ],
     };
-    await $fetch(`${useRuntimeConfig().public.apiBase}/api/v1/harvest`, {
-      method: "POST",
-      body: payload,
-    });
+    await $fetch(
+      `${useRuntimeConfig().public.apiBase}/api/v1/harvest/${harvestId.value}`,
+      {
+        method: "PUT",
+        body: payload,
+      }
+    );
 
     refresh();
-
-    //clear state
-    reject.jamur = undefined;
-    reject.mildew = undefined;
-    reject.jamurHijau = undefined;
-    reject.siput = undefined;
-    reject.cracking = undefined;
-    reject.overripe = undefined;
-    reject.fisik = undefined;
-    reject.hama = undefined;
-    reject.polinasi = undefined;
-    reject.gradeC = undefined;
-    reject.orange = undefined;
-
-    yieldState.momokaGradeA = undefined;
-    yieldState.momokaGradeB = undefined;
-    yieldState.momokaGradeMix = undefined;
-    yieldState.tochiotomeGradeA = undefined;
-    yieldState.tochiotomeGradeB = undefined;
-    yieldState.tochiotomeGradeMix = undefined;
-
-    state.datetime = currentDateTime.value;
-    state.siklus = undefined;
-    state.harvestLocation = undefined;
-    state.pic = undefined;
-    state.packGradeA = undefined;
-    state.packGradeA15pcs = undefined;
-    state.frozenWeight = undefined;
-    state.wastedWeight = undefined;
-    state.packGradeB = undefined;
-    state.momoka3pcs = undefined;
-    state.momoka6pcs = undefined;
-    state.momokaA11 = undefined;
-    state.momokaA15 = undefined;
-    state.momokaGradeB = undefined;
-    state.hatsuhana3pcs = undefined;
-    state.hatsuhana4pcs = undefined;
-    state.hatsuhana6pcs = undefined;
-    state.giftbox = undefined;
-    state.total = 0;
-    state.totalExMomoka = 0;
-    state.reject = reject;
-    state.yield = yieldState;
-  } catch (error) {}
+    navigateTo("/harvest");
+  } catch (error) {
+    toast.add({
+      title: "Error",
+      description: "Failed to update harvest data",
+      color: "error",
+    });
+  }
 }
-
-onMounted(() => {
-  currentDateTime.value = new Date().toISOString().slice(0, 16);
-
-  const date = new Date(currentDateTime.value);
-
-  date.setHours(date.getHours() + 14);
-
-  const updatedTime = date.toISOString().slice(0, 16);
-
-  state.datetime = updatedTime;
-});
 
 watch(
   () => [
@@ -367,7 +448,6 @@ watch(
               variant="none"
               class="w-full"
               type="datetime-local"
-              :value="currentDateTime"
             />
           </Input>
         </UFormField>

@@ -151,18 +151,71 @@ export default async function routes(fastify) {
   // PUT update harvest data
   fastify.put("/api/v1/harvest/:id", async (request, reply) => {
     const { id } = request.params;
-    const updateData = request.body;
+    const {
+      datetime,
+      location_id,
+      pic_id,
+      siklus,
+      total,
+      total_ex_momoka,
+      frozen_weight,
+      wasted_weight,
+      Packing,
+      Reject,
+      Yield,
+    } = request.body;
+    const isoDatetime = new Date(datetime).toISOString();
 
     try {
+      // First delete existing related records
+      await prisma.packing.deleteMany({ where: { harvest_id: parseInt(id) } });
+      await prisma.reject.deleteMany({ where: { harvest_id: parseInt(id) } });
+      await prisma.yield.deleteMany({ where: { harvest_id: parseInt(id) } });
+
+      // Then update the harvest and create new related records
       const updatedHarvest = await prisma.harvest.update({
         where: { id: parseInt(id) },
-        data: updateData,
+        data: {
+          datetime: isoDatetime,
+          location: { connect: { id: location_id } },
+          pic: { connect: { id: pic_id } },
+          siklus,
+          total,
+          total_ex_momoka,
+          frozen_weight,
+          wasted_weight,
+          Packing: {
+            create: Packing.map((pack) => ({
+              package_id: pack.package_id,
+              quantity: pack.quantity,
+            })),
+          },
+          Reject: {
+            create: Reject.map((reject) => ({
+              reason_id: reject.reason_id,
+              quantity: reject.quantity,
+            })),
+          },
+          Yield: {
+            create: Yield.map((yieldItem) => ({
+              variant_grade_id: yieldItem.variant_grade_id,
+              quantity: yieldItem.quantity,
+            })),
+          },
+        },
+        include: {
+          Packing: true,
+          Reject: true,
+          Yield: true,
+        },
       });
+
       reply.send(updatedHarvest);
     } catch (err) {
-      reply
-        .status(500)
-        .send({ error: "Failed to update harvest data", details: err.message });
+      reply.status(500).send({
+        error: "Failed to update harvest data",
+        details: err.message,
+      });
     }
   });
 
