@@ -1,6 +1,11 @@
 <script lang="ts" setup>
 import * as z from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui";
+import { h, ref } from "vue";
+import { getPaginationRowModel } from "@tanstack/vue-table";
+import type { TableColumn } from "@nuxt/ui";
+const UButton = resolveComponent("UButton");
+const { formatToWIB } = useDateTime();
 
 const schema = z.object({
   datetime: z.number().min(0),
@@ -20,6 +25,117 @@ const schema = z.object({
 });
 
 const currentDateTime = ref(1);
+
+const { data, status, refresh } = await useFetch<Forecast[]>(
+  `${useRuntimeConfig().public.apiBase}/api/v1/forecasts`,
+  {
+    key: "table-forecasts",
+    lazy: true,
+    default: () => [],
+  }
+);
+
+const columns: TableColumn<Forecast>[] = [
+  {
+    accessorKey: "index",
+    header: ({ column }) => {
+      const isSorted = column.getIsSorted();
+      return h(UButton, {
+        color: "neutral",
+        variant: "ghost",
+        label: "No.",
+        icon: isSorted
+          ? isSorted === "asc"
+            ? "i-lucide-arrow-up-narrow-wide"
+            : "i-lucide-arrow-down-wide-narrow"
+          : "i-lucide-arrow-up-down",
+        class: "-mx-2.5",
+        onClick: () => column.toggleSorting(column.getIsSorted() === "asc"),
+      });
+    },
+    cell: ({ row }) => row.index + 1,
+  },
+  {
+    accessorKey: "week",
+    header: ({ column }) => {
+      const isSorted = column.getIsSorted();
+      return h(UButton, {
+        color: "neutral",
+        variant: "ghost",
+        label: "Week",
+        icon: isSorted
+          ? isSorted === "asc"
+            ? "i-lucide-arrow-up-narrow-wide"
+            : "i-lucide-arrow-down-wide-narrow"
+          : "i-lucide-arrow-up-down",
+        class: "-mx-2.5",
+        onClick: () => column.toggleSorting(column.getIsSorted() === "asc"),
+      });
+    },
+    cell: ({ row }) => formatToWIB(row.original.week),
+  },
+  {
+    accessorKey: "location_id",
+    header: "Location",
+    // @ts-ignore
+    cell: ({ row }) => row.original.location.name,
+  },
+  {
+    accessorKey: "pic_id",
+    header: "PIC",
+    // @ts-ignore
+    cell: ({ row }) => row.original.pic.name,
+  },
+  {
+    accessorKey: "total",
+    header: "Total",
+    cell: ({ row }) => row.original.total + " kg",
+  },
+  {
+    accessorKey: "total_ex_momoka",
+    header: "Total Ex Momoka",
+    cell: ({ row }) => row.original.total_ex_momoka + " kg",
+  },
+  {
+    accessorKey: "actions",
+    header: () => h("div", { class: "text-right" }, "Actions"),
+    cell: ({ row }) =>
+      h("div", { class: "flex space-x-4 w-full justify-end" }, [
+        h(UButton, {
+          label: "Edit",
+          icon: "lucide:pencil",
+          color: "neutral",
+          variant: "ghost",
+          onClick: () =>
+            navigateTo(`/dashboard/forecast/form/${row.original.id}`),
+        }),
+        h(UButton, {
+          label: "Remove",
+          icon: "lucide:trash",
+          color: "error",
+          variant: "ghost",
+          onClick: async () => {
+            const confirmed = confirm(
+              "Are you sure you want to remove this forecast?"
+            );
+            if (confirmed) {
+              try {
+                await $fetch(
+                  `${useRuntimeConfig().public.apiBase}/api/v1/forecasts/${
+                    row.original.id
+                  }`,
+                  {
+                    method: "DELETE",
+                  }
+                );
+                refresh();
+              } catch (error) {}
+            }
+          },
+        }),
+      ]),
+  },
+];
 
 type Schema = z.output<typeof schema>;
 
@@ -112,6 +228,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         body: payload,
       }
     );
+    refresh();
     toast.add({
       title: "Success",
       description: "Forecast created successfully",
@@ -185,6 +302,20 @@ watch(
   },
   { immediate: true }
 );
+
+const pagination = ref({
+  pageIndex: 0,
+  pageSize: 10,
+});
+
+const sorting = ref([
+  {
+    id: "week",
+    desc: true,
+  },
+]);
+
+const table = ref();
 </script>
 
 <template>
@@ -381,5 +512,32 @@ watch(
       <Button label="Submit" type="submit" class="mt-4 mr-2" />
       <Button label="Reset" type="reset" color="secondary" class="mt-4" />
     </UForm>
+
+    <div
+      class="w-full p-4 bg-white rounded-lg border-crown-of-thorns-500 border"
+    >
+      <UTable
+        ref="table"
+        v-model:pagination="pagination"
+        v-model:sorting="sorting"
+        :data="data || []"
+        :columns="columns"
+        :pagination-options="{
+          getPaginationRowModel: getPaginationRowModel(),
+        }"
+        class="flex-1"
+      />
+
+      <div class="flex justify-center mt-8">
+        <UPagination
+          :default-page="
+            (table?.tableApi?.getState().pagination.pageIndex || 0) + 1
+          "
+          :items-per-page="table?.tableApi?.getState().pagination.pageSize"
+          :total="table?.tableApi?.getFilteredRowModel().rows.length"
+          @update:page="(p:any) => table?.tableApi?.setPageIndex(p - 1)"
+        />
+      </div>
+    </div>
   </div>
 </template>
