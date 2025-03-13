@@ -1,60 +1,10 @@
 <script lang="ts" setup>
-import * as z from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui";
+import type { RejectSchema, YieldSchema, Schema } from "./schema";
+import { schema } from "./schema";
 
-const rejectSchema = z.object({
-  jamur: z.optional(z.number().min(0)),
-  mildew: z.optional(z.number().min(0)),
-  jamurHijau: z.optional(z.number().min(0)),
-  siput: z.optional(z.number().min(0)),
-  cracking: z.optional(z.number().min(0)),
-  overripe: z.optional(z.number().min(0)),
-  fisik: z.optional(z.number().min(0)),
-  hama: z.optional(z.number().min(0)),
-  polinasi: z.optional(z.number().min(0)),
-  gradeC: z.optional(z.number().min(0)),
-  orange: z.optional(z.number().min(0)),
-});
-
-const yieldSchema = z.object({
-  momokaGradeA: z.optional(z.number().min(0)),
-  momokaGradeB: z.optional(z.number().min(0)),
-  momokaGradeMix: z.optional(z.number().min(0)),
-  tochiotomeGradeA: z.optional(z.number().min(0)),
-  tochiotomeGradeB: z.optional(z.number().min(0)),
-  tochiotomeGradeMix: z.optional(z.number().min(0)),
-});
-
-const schema = z.object({
-  datetime: z.string(),
-  harvestLocation: z.number(),
-  pic: z.number(),
-  siklus: z.optional(z.number().min(0)),
-  packGradeA: z.optional(z.number().min(0)),
-  packGradeA15pcs: z.optional(z.number().min(0)),
-  frozenWeight: z.optional(z.number().min(0)),
-  wastedWeight: z.optional(z.number().min(0)),
-  packGradeB: z.optional(z.number().min(0)),
-  momoka3pcs: z.optional(z.number().min(0)),
-  momoka6pcs: z.optional(z.number().min(0)),
-  momokaA11: z.optional(z.number().min(0)),
-  momokaA15: z.optional(z.number().min(0)),
-  momokaGradeB: z.optional(z.number().min(0)),
-  hatsuhana3pcs: z.optional(z.number().min(0)),
-  hatsuhana4pcs: z.optional(z.number().min(0)),
-  hatsuhana6pcs: z.optional(z.number().min(0)),
-  giftbox: z.optional(z.number().min(0)),
-  total: z.number().min(0),
-  totalExMomoka: z.number().min(0),
-  reject: rejectSchema,
-  yield: yieldSchema,
-});
-
+const toast = useToast();
 const currentDateTime = ref("");
-
-type RejectSchema = z.output<typeof rejectSchema>;
-type YieldSchema = z.output<typeof yieldSchema>;
-type Schema = z.output<typeof schema>;
 
 const reject = reactive<Partial<RejectSchema>>({
   jamur: undefined,
@@ -115,12 +65,9 @@ const items = ref([
   },
 ]);
 
-const toast = useToast();
-
-const ensureNumber = (value: number | undefined) => Number(value) || 0;
-
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-  console.log(event.data);
+  const ensureNumber = (value: number | undefined) => Number(value) || 0;
+
   try {
     const payload = {
       datetime: event.data.datetime,
@@ -244,13 +191,10 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         },
       ],
     };
-    const response = await $fetch(
-      `${useRuntimeConfig().public.apiBase}/api/v1/harvest`,
-      {
-        method: "POST",
-        body: payload,
-      }
-    );
+    await $fetch(`${useRuntimeConfig().public.apiBase}/api/v1/harvest`, {
+      method: "POST",
+      body: payload,
+    });
 
     //clear state
     reject.jamur = undefined;
@@ -294,44 +238,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     state.totalExMomoka = 0;
     state.reject = reject;
     state.yield = yieldState;
-    // navigateTo("/dashboard/harvest");
   } catch (error) {}
 }
-
-const momokaSchema = z.object({
-  grade: z.string(),
-  beratBersih: z.number(),
-});
-
-const tochiotomeSchema = z.object({
-  grade: z.string(),
-  beratBersih: z.number(),
-});
-const schemaYield = z.object({
-  siklus: z.number(),
-  remark: z.string(),
-  momoka: z.array(momokaSchema),
-  tochiotome: z.array(tochiotomeSchema),
-});
-
-type SchemaYield = z.output<typeof schemaYield>;
-type Momoka = z.output<typeof momokaSchema>;
-type Tochiotome = z.output<typeof tochiotomeSchema>;
-
-const stateYield = reactive<Partial<SchemaYield>>({
-  siklus: undefined,
-  remark: "",
-});
-
-const stateMomoka = reactive<Partial<Momoka>>({
-  grade: "",
-  beratBersih: undefined,
-});
-
-const stateTochiotome = reactive<Partial<Tochiotome>>({
-  grade: "",
-  beratBersih: undefined,
-});
 
 onMounted(() => {
   currentDateTime.value = new Date().toISOString().slice(0, 16);
