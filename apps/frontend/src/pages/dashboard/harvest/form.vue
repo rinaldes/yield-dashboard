@@ -2,47 +2,82 @@
 import * as z from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui";
 
+const rejectSchema = z.object({
+  jamur: z.optional(z.number().min(0)),
+  mildew: z.optional(z.number().min(0)),
+  jamurHijau: z.optional(z.number().min(0)),
+  siput: z.optional(z.number().min(0)),
+  cracking: z.optional(z.number().min(0)),
+  overripe: z.optional(z.number().min(0)),
+  fisik: z.optional(z.number().min(0)),
+  hama: z.optional(z.number().min(0)),
+  polinasi: z.optional(z.number().min(0)),
+  gradeC: z.optional(z.number().min(0)),
+  orange: z.optional(z.number().min(0)),
+});
+
+const yieldSchema = z.object({
+  momokaGradeA: z.optional(z.number().min(0)),
+  momokaGradeB: z.optional(z.number().min(0)),
+  momokaGradeMix: z.optional(z.number().min(0)),
+  tochiotomeGradeA: z.optional(z.number().min(0)),
+  tochiotomeGradeB: z.optional(z.number().min(0)),
+  tochiotomeGradeMix: z.optional(z.number().min(0)),
+});
+
 const schema = z.object({
   datetime: z.string(),
   harvestLocation: z.number(),
   pic: z.number(),
-  siklus: z.optional(z.number()),
-  packGradeA: z.optional(z.number()),
-  packGradeA15pcs: z.optional(z.number()),
-  frozenWeight: z.optional(z.number()),
-  wastedWeight: z.optional(z.number()),
-  packGradeB: z.optional(z.number()),
-  momoka3pcs: z.optional(z.number()),
-  momoka6pcs: z.optional(z.number()),
-  momokaA11: z.optional(z.number()),
-  momokaA15: z.optional(z.number()),
-  momokaGradeB: z.optional(z.number()),
-  hatsuhana3pcs: z.optional(z.number()),
-  hatsuhana4pcs: z.optional(z.number()),
-  hatsuhana6pcs: z.optional(z.number()),
-  giftbox: z.optional(z.number()),
-  total: z.number(),
-  totalExMomoka: z.number(),
-});
-
-const rejectSchema = z.object({
-  jamur: z.optional(z.number()),
-  mildew: z.optional(z.number()),
-  jamurHijau: z.optional(z.number()),
-  siput: z.optional(z.number()),
-  cracking: z.optional(z.number()),
-  overripe: z.optional(z.number()),
-  fisik: z.optional(z.number()),
-  hama: z.optional(z.number()),
-  polinasi: z.optional(z.number()),
-  gradeC: z.optional(z.number()),
-  orange: z.optional(z.number()),
+  siklus: z.optional(z.number().min(0)),
+  packGradeA: z.optional(z.number().min(0)),
+  packGradeA15pcs: z.optional(z.number().min(0)),
+  frozenWeight: z.optional(z.number().min(0)),
+  wastedWeight: z.optional(z.number().min(0)),
+  packGradeB: z.optional(z.number().min(0)),
+  momoka3pcs: z.optional(z.number().min(0)),
+  momoka6pcs: z.optional(z.number().min(0)),
+  momokaA11: z.optional(z.number().min(0)),
+  momokaA15: z.optional(z.number().min(0)),
+  momokaGradeB: z.optional(z.number().min(0)),
+  hatsuhana3pcs: z.optional(z.number().min(0)),
+  hatsuhana4pcs: z.optional(z.number().min(0)),
+  hatsuhana6pcs: z.optional(z.number().min(0)),
+  giftbox: z.optional(z.number().min(0)),
+  total: z.number().min(0),
+  totalExMomoka: z.number().min(0),
+  reject: rejectSchema,
+  yield: yieldSchema,
 });
 
 const currentDateTime = ref("");
 
-type Schema = z.output<typeof schema>;
 type RejectSchema = z.output<typeof rejectSchema>;
+type YieldSchema = z.output<typeof yieldSchema>;
+type Schema = z.output<typeof schema>;
+
+const reject = reactive<Partial<RejectSchema>>({
+  jamur: undefined,
+  mildew: undefined,
+  jamurHijau: undefined,
+  siput: undefined,
+  cracking: undefined,
+  overripe: undefined,
+  fisik: undefined,
+  hama: undefined,
+  polinasi: undefined,
+  gradeC: undefined,
+  orange: undefined,
+});
+
+const yieldState = reactive<Partial<YieldSchema>>({
+  momokaGradeA: undefined,
+  momokaGradeB: undefined,
+  momokaGradeMix: undefined,
+  tochiotomeGradeA: undefined,
+  tochiotomeGradeB: undefined,
+  tochiotomeGradeMix: undefined,
+});
 
 const state = reactive<Partial<Schema>>({
   datetime: currentDateTime.value,
@@ -65,20 +100,8 @@ const state = reactive<Partial<Schema>>({
   giftbox: undefined,
   total: 0,
   totalExMomoka: 0,
-});
-
-const reject = reactive<Partial<RejectSchema>>({
-  jamur: undefined,
-  mildew: undefined,
-  jamurHijau: undefined,
-  siput: undefined,
-  cracking: undefined,
-  overripe: undefined,
-  fisik: undefined,
-  hama: undefined,
-  polinasi: undefined,
-  gradeC: undefined,
-  orange: undefined,
+  reject: reject,
+  yield: yieldState,
 });
 
 const items = ref([
@@ -93,39 +116,186 @@ const items = ref([
 ]);
 
 const toast = useToast();
+
+const ensureNumber = (value: number | undefined) => Number(value) || 0;
+
 async function onSubmit(event: FormSubmitEvent<Schema>) {
   console.log(event.data);
-  // try {
-  //   const response = await $fetch(
-  //     `${useRuntimeConfig().public.apiBase}/api/v1/harvest`,
-  //     {
-  //       method: "POST",
-  //       body: {
-  //         datetime: state.datetime,
-  //         harvestLocation: state.harvestLocation,
-  //         pic: state.pic,
-  //         packGradeA: state.packGradeA,
-  //         packGradeA15pcs: state.packGradeA15pcs,
-  //         frozenWeight: state.frozenWeight,
-  //         wastedWeight: state.wastedWeight,
-  //         packGradeB: state.packGradeB,
-  //         momoka3pcs: state.momoka3pcs,
-  //         momoka6pcs: state.momoka6pcs,
-  //         momokaA11: state.momokaA11,
-  //         momokaA15: state.momokaA15,
-  //         momokaGradeB: state.momokaGradeB,
-  //         hatsuhana3pcs: state.hatsuhana3pcs,
-  //         hatsuhana4pcs: state.hatsuhana4pcs,
-  //         hatsuhana6pcs: state.hatsuhana6pcs,
-  //         giftbox: state.giftbox,
-  //         total: state.total,
-  //         totalExMomoka: state.totalExMomoka,
-  //       },
-  //     }
-  //   );
+  try {
+    const payload = {
+      datetime: event.data.datetime,
+      location_id: event.data.harvestLocation,
+      pic_id: event.data.pic,
+      siklus: event.data.siklus,
+      total: event.data.total,
+      total_ex_momoka: event.data.totalExMomoka,
+      Packing: [
+        {
+          package_id: 1,
+          quantity: ensureNumber(event.data.momoka3pcs),
+        },
+        {
+          package_id: 2,
+          quantity: ensureNumber(event.data.momoka6pcs),
+        },
+        {
+          package_id: 3,
+          quantity: ensureNumber(event.data.momokaA11),
+        },
+        {
+          package_id: 4,
+          quantity: ensureNumber(event.data.momokaA15),
+        },
+        {
+          package_id: 5,
+          quantity: ensureNumber(event.data.momokaGradeB),
+        },
+        {
+          package_id: 6,
+          quantity: ensureNumber(event.data.packGradeA),
+        },
+        {
+          package_id: 7,
+          quantity: ensureNumber(event.data.packGradeA15pcs),
+        },
+        {
+          package_id: 8,
+          quantity: ensureNumber(event.data.packGradeB),
+        },
+        {
+          package_id: 9,
+          quantity: ensureNumber(event.data.hatsuhana3pcs),
+        },
+        {
+          package_id: 10,
+          quantity: ensureNumber(event.data.hatsuhana4pcs),
+        },
+        {
+          package_id: 11,
+          quantity: ensureNumber(event.data.hatsuhana6pcs),
+        },
+        {
+          package_id: 12,
+          quantity: ensureNumber(event.data.giftbox),
+        },
+      ],
+      Reject: [
+        {
+          reason_id: 1,
+          quantity: ensureNumber(event.data.reject.jamur),
+        },
+        {
+          reason_id: 2,
+          quantity: ensureNumber(event.data.reject.mildew),
+        },
+        {
+          reason_id: 3,
+          quantity: ensureNumber(event.data.reject.jamurHijau),
+        },
+        {
+          reason_id: 4,
+          quantity: ensureNumber(event.data.reject.siput),
+        },
+        {
+          reason_id: 5,
+          quantity: ensureNumber(event.data.reject.cracking),
+        },
+        {
+          reason_id: 6,
+          quantity: ensureNumber(event.data.reject.overripe),
+        },
+        {
+          reason_id: 7,
+          quantity: ensureNumber(event.data.reject.fisik),
+        },
+        {
+          reason_id: 8,
+          quantity: ensureNumber(event.data.reject.hama),
+        },
+        {
+          reason_id: 9,
+          quantity: ensureNumber(event.data.reject.polinasi),
+        },
+        {
+          reason_id: 10,
+          quantity: ensureNumber(event.data.reject.gradeC),
+        },
+        {
+          reason_id: 11,
+          quantity: ensureNumber(event.data.reject.orange),
+        },
+      ],
+      Yield: [
+        {
+          variant_grade_id: 1,
+          quantity: ensureNumber(event.data.yield.momokaGradeMix),
+        },
+        {
+          variant_grade_id: 2,
+          quantity: ensureNumber(event.data.yield.tochiotomeGradeA),
+        },
+        {
+          variant_grade_id: 3,
+          quantity: ensureNumber(event.data.yield.tochiotomeGradeB),
+        },
+        {
+          variant_grade_id: 4,
+          quantity: ensureNumber(event.data.yield.tochiotomeGradeMix),
+        },
+      ],
+    };
+    const response = await $fetch(
+      `${useRuntimeConfig().public.apiBase}/api/v1/harvest`,
+      {
+        method: "POST",
+        body: payload,
+      }
+    );
 
-  //   navigateTo("/dashboard/harvest");
-  // } catch (error) {}
+    //clear state
+    reject.jamur = undefined;
+    reject.mildew = undefined;
+    reject.jamurHijau = undefined;
+    reject.siput = undefined;
+    reject.cracking = undefined;
+    reject.overripe = undefined;
+    reject.fisik = undefined;
+    reject.hama = undefined;
+    reject.polinasi = undefined;
+    reject.gradeC = undefined;
+    reject.orange = undefined;
+
+    yieldState.momokaGradeA = undefined;
+    yieldState.momokaGradeB = undefined;
+    yieldState.momokaGradeMix = undefined;
+    yieldState.tochiotomeGradeA = undefined;
+    yieldState.tochiotomeGradeB = undefined;
+    yieldState.tochiotomeGradeMix = undefined;
+
+    state.datetime = currentDateTime.value;
+    state.siklus = undefined;
+    state.harvestLocation = undefined;
+    state.pic = undefined;
+    state.packGradeA = undefined;
+    state.packGradeA15pcs = undefined;
+    state.frozenWeight = undefined;
+    state.wastedWeight = undefined;
+    state.packGradeB = undefined;
+    state.momoka3pcs = undefined;
+    state.momoka6pcs = undefined;
+    state.momokaA11 = undefined;
+    state.momokaA15 = undefined;
+    state.momokaGradeB = undefined;
+    state.hatsuhana3pcs = undefined;
+    state.hatsuhana4pcs = undefined;
+    state.hatsuhana6pcs = undefined;
+    state.giftbox = undefined;
+    state.total = 0;
+    state.totalExMomoka = 0;
+    state.reject = reject;
+    state.yield = yieldState;
+    // navigateTo("/dashboard/harvest");
+  } catch (error) {}
 }
 
 const momokaSchema = z.object({
@@ -625,30 +795,30 @@ watch(
           <div class="flex flex-col gap-4">
             <h3>Momoka</h3>
             <div class="grid grid-cols-1 gap-4 xl:grid-cols-3">
-              <UFormField label="Grade A" name="beratBersih">
+              <UFormField label="Grade A" name="momokaGradeA">
                 <Input>
                   <UInput
-                    v-model="stateMomoka.beratBersih"
+                    v-model="yieldState.momokaGradeA"
                     variant="none"
                     class="w-full"
                     type="number"
                   />
                 </Input>
               </UFormField>
-              <UFormField label="Grade B" name="beratBersih">
+              <UFormField label="Grade B" name="momokaGradeB">
                 <Input>
                   <UInput
-                    v-model="stateMomoka.beratBersih"
+                    v-model="yieldState.momokaGradeB"
                     variant="none"
                     class="w-full"
                     type="number"
                   />
                 </Input>
               </UFormField>
-              <UFormField label="Mix" name="beratBersih">
+              <UFormField label="Mix" name="momokaGradeMix">
                 <Input>
                   <UInput
-                    v-model="stateMomoka.beratBersih"
+                    v-model="yieldState.momokaGradeMix"
                     variant="none"
                     class="w-full"
                     type="number"
@@ -660,30 +830,30 @@ watch(
           <div class="flex flex-col gap-4">
             <h3>Tochiotome</h3>
             <div class="grid grid-cols-1 gap-4 xl:grid-cols-3">
-              <UFormField label="Grade A" name="beratBersih">
+              <UFormField label="Grade A" name="tochiotomeGradeA">
                 <Input>
                   <UInput
-                    v-model="stateTochiotome.beratBersih"
+                    v-model="yieldState.tochiotomeGradeA"
                     variant="none"
                     class="w-full"
                     type="number"
                   />
                 </Input>
               </UFormField>
-              <UFormField label="Grade B" name="beratBersih">
+              <UFormField label="Grade B" name="tochiotomeGradeB">
                 <Input>
                   <UInput
-                    v-model="stateTochiotome.beratBersih"
+                    v-model="yieldState.tochiotomeGradeB"
                     variant="none"
                     class="w-full"
                     type="number"
                   />
                 </Input>
               </UFormField>
-              <UFormField label="Mix" name="beratBersih">
+              <UFormField label="Mix" name="tochiotomeGradeMix">
                 <Input>
                   <UInput
-                    v-model="stateMomoka.beratBersih"
+                    v-model="yieldState.tochiotomeGradeMix"
                     variant="none"
                     class="w-full"
                     type="number"

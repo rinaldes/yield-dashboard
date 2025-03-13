@@ -6,7 +6,32 @@ export default async function routes(fastify) {
   // GET all harvest data
   fastify.get("/api/v1/harvest", async (request, reply) => {
     try {
-      const harvestData = await prisma.harvest.findMany();
+      const harvestData = await prisma.harvest.findMany({
+        include: {
+          location: true,
+          pic: true,
+          Packing: {
+            include: {
+              package: true,
+            },
+          },
+          Reject: {
+            include: {
+              reason: true,
+            },
+          },
+          Yield: {
+            include: {
+              variantGrade: {
+                include: {
+                  variant: true,
+                  grade: true,
+                },
+              },
+            },
+          },
+        },
+      });
       return harvestData;
     } catch (err) {
       reply
@@ -21,23 +46,14 @@ export default async function routes(fastify) {
     async (request, reply) => {
       const {
         datetime,
-        harvestLocation,
-        pic,
-        packGradeA,
-        packGradeA15pcs,
-        frozenWeight,
-        wastedWeight,
-        packGradeB,
-        momoka3pcs,
-        momokaA11,
-        momokaA15,
-        momokaGradeB,
-        hatsuhana3pcs,
-        hatsuhana4pcs,
-        hatsuhana6pcs,
-        giftbox,
+        location_id,
+        pic_id,
+        siklus,
         total,
-        totalExMomoka,
+        total_ex_momoka,
+        Packing,
+        Reject,
+        Yield,
       } = request.body;
       const isoDatetime = new Date(datetime).toISOString();
 
@@ -45,23 +61,34 @@ export default async function routes(fastify) {
         const newHarvest = await prisma.harvest.create({
           data: {
             datetime: isoDatetime,
-            harvestLocation,
-            pic,
-            packGradeA,
-            packGradeA15pcs,
-            frozenWeight,
-            wastedWeight,
-            packGradeB,
-            momoka3pcs,
-            momokaA11,
-            momokaA15,
-            momokaGradeB,
-            hatsuhana3pcs,
-            hatsuhana4pcs,
-            hatsuhana6pcs,
-            giftbox,
+            location_id,
+            pic_id,
+            siklus,
             total,
-            totalExMomoka,
+            total_ex_momoka,
+            Packing: {
+              create: Packing.map((pack) => ({
+                package_id: pack.package_id,
+                quantity: pack.quantity,
+              })),
+            },
+            Reject: {
+              create: Reject.map((reject) => ({
+                reason_id: reject.reason_id,
+                quantity: reject.quantity,
+              })),
+            },
+            Yield: {
+              create: Yield.map((yieldItem) => ({
+                variant_grade_id: yieldItem.variant_grade_id,
+                quantity: yieldItem.quantity,
+              })),
+            },
+          },
+          include: {
+            Packing: true,
+            Reject: true,
+            Yield: true,
           },
         });
         console.log("Successfully created harvest:", newHarvest);

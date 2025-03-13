@@ -10,7 +10,9 @@ export const useHarvestData = defineStore("data", {
       this.loading = true;
       try {
         const response = await fetch(
-          `${useRuntimeConfig().public.apiBase}/api/v1/harvest`
+          `${
+            useRuntimeConfig().public.apiBase
+          }/api/v1/harvest?include=location,pic,Packing,Reject,Yield`
         );
         this.harvestData = await response.json();
       } catch (error) {

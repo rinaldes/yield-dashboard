@@ -255,7 +255,7 @@ const table = ref();
         @click="navigateTo('/dashboard/brix/form')"
       />
     </div>
-    <div class="bg-white shadow-lg p-8">
+    <div class="bg-white border border-crown-of-thorns-50 p-8">
       <UCollapsible :unmount-on-hide="false" class="flex flex-col gap-2">
         <UButton
           label="Filter"

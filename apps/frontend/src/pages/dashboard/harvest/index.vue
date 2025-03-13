@@ -10,28 +10,57 @@ const { formatToWIB } = useDateTime();
 type Harvest = {
   id: number;
   datetime: string;
-  harvestLocation: string;
-  pic: string;
-  packGradeA: number;
-  packGradeA15pcs: number;
-  frozenWeight: number;
-  wastedWeight: number;
-  packGradeB: number;
-  momoka3pcs: number;
-  momoka6pcs: number;
-  momokaA11: number;
-  momokaA15: number;
-  momokaGradeB: number;
-  hatsuhana3pcs: number;
-  hatsuhana4pcs: number;
-  hatsuhana6pcs: number;
-  giftbox: number;
+  location: {
+    id: number;
+    name: string;
+  };
+  pic: {
+    id: number;
+    name: string;
+  };
+  siklus: number;
   total: number;
-  totalExMomoka: number;
+  total_ex_momoka: number;
+  Packing: {
+    id: number;
+    package_id: number;
+    quantity: number;
+    package: {
+      id: number;
+      name: string;
+    };
+  }[];
+  Reject: {
+    id: number;
+    reason_id: number;
+    quantity: number;
+    reason: {
+      id: number;
+      name: string;
+    };
+  }[];
+  Yield: {
+    id: number;
+    variant_grade_id: number;
+    quantity: number;
+    variantGrade: {
+      id: number;
+      variant: {
+        id: number;
+        name: string;
+      };
+      grade: {
+        id: number;
+        name: string;
+      };
+    };
+  }[];
 };
 
 const { data, status, refresh } = await useFetch<Harvest[]>(
-  `${useRuntimeConfig().public.apiBase}/api/v1/harvest`,
+  `${
+    useRuntimeConfig().public.apiBase
+  }/api/v1/harvest?include=location,pic,Packing,Reject,Yield`,
   {
     key: "table-harvest",
     lazy: true,
@@ -78,7 +107,7 @@ const columns: TableColumn<Harvest>[] = [
     cell: ({ row }) => formatToWIB(row.original.datetime),
   },
   {
-    accessorKey: "harvestLocation",
+    accessorKey: "location.name",
     header: ({ column }) => {
       const isSorted = column.getIsSorted();
 
@@ -97,7 +126,7 @@ const columns: TableColumn<Harvest>[] = [
     },
   },
   {
-    accessorKey: "pic",
+    accessorKey: "pic.name",
     header: ({ column }) => {
       const isSorted = column.getIsSorted();
 
@@ -133,6 +162,46 @@ const columns: TableColumn<Harvest>[] = [
         onClick: () => column.toggleSorting(column.getIsSorted() === "asc"),
       });
     },
+    cell: ({ row }) => row.original.total + " pack",
+  },
+  {
+    accessorKey: "total_ex_momoka",
+    header: ({ column }) => {
+      const isSorted = column.getIsSorted();
+
+      return h(UButton, {
+        color: "neutral",
+        variant: "ghost",
+        label: "Total Without Momoka",
+        icon: isSorted
+          ? isSorted === "asc"
+            ? "i-lucide-arrow-up-narrow-wide"
+            : "i-lucide-arrow-down-wide-narrow"
+          : "i-lucide-arrow-up-down",
+        class: "-mx-2.5",
+        onClick: () => column.toggleSorting(column.getIsSorted() === "asc"),
+      });
+    },
+    cell: ({ row }) => row.original.total_ex_momoka + " pack",
+  },
+  {
+    accessorKey: "siklus",
+    header: ({ column }) => {
+      const isSorted = column.getIsSorted();
+
+      return h(UButton, {
+        color: "neutral",
+        variant: "ghost",
+        label: "Siklus",
+        icon: isSorted
+          ? isSorted === "asc"
+            ? "i-lucide-arrow-up-narrow-wide"
+            : "i-lucide-arrow-down-wide-narrow"
+          : "i-lucide-arrow-up-down",
+        class: "-mx-2.5",
+        onClick: () => column.toggleSorting(column.getIsSorted() === "asc"),
+      });
+    },
   },
   {
     accessorKey: "actions",
@@ -150,7 +219,7 @@ const columns: TableColumn<Harvest>[] = [
         h(UButton, {
           label: "Remove",
           icon: "lucide:trash",
-          color: "red",
+          color: "error",
           variant: "ghost",
           onClick: async () => {
             const confirmed = confirm(
@@ -183,7 +252,7 @@ const pagination = ref({
 const sorting = ref([
   {
     id: "datetime",
-    desc: false,
+    desc: true,
   },
 ]);
 
@@ -202,7 +271,7 @@ const expanded = ref({});
         @click="navigateTo('/dashboard/harvest/form')"
       />
     </div>
-    <div class="w-full p-4 bg-white rounded-lg">
+    <div class="w-full py-6 px-4 bg-white border border-crown-of-thorns-500">
       <UTable
         ref="table"
         v-model:pagination="pagination"
@@ -218,78 +287,48 @@ const expanded = ref({});
       >
         <template #expanded="{ row }">
           <div class="p-4 bg-gray-50 rounded-lg space-y-4">
-            <h2>Tochiotome</h2>
+            <h2>Packing</h2>
             <div
               class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 mb-8"
             >
-              <div class="space-y-1">
+              <div
+                v-for="(packing, index) in row.original.Packing"
+                :key="index"
+                class="space-y-1"
+              >
                 <div class="text-sm font-bold text-plantation-500">
-                  Pack Grade A
+                  Package {{ packing.package.name }}
                 </div>
-                <div class="font-medium">{{ row.original.packGradeA }}</div>
-              </div>
-              <div class="space-y-1">
-                <div class="text-sm font-bold text-plantation-500">
-                  Pack Grade A 15pcs
-                </div>
-                <div class="font-medium">
-                  {{ row.original.packGradeA15pcs }}
-                </div>
-              </div>
-              <div class="space-y-1">
-                <div class="text-sm font-bold text-plantation-500">
-                  Pack Grade B
-                </div>
-                <div class="font-medium">{{ row.original.packGradeB }}</div>
-              </div>
-              <div class="space-y-1">
-                <div class="text-sm font-bold text-plantation-500">
-                  Hatsuhana 3pcs
-                </div>
-                <div class="font-medium">{{ row.original.hatsuhana3pcs }}</div>
-              </div>
-              <div class="space-y-1">
-                <div class="text-sm font-bold text-plantation-500">
-                  Hatsuhana 4pcs
-                </div>
-                <div class="font-medium">{{ row.original.hatsuhana4pcs }}</div>
-              </div>
-              <div class="space-y-1">
-                <div class="text-sm font-bold text-plantation-500">
-                  Hatsuhana 6pcs
-                </div>
-                <div class="font-medium">{{ row.original.hatsuhana6pcs }}</div>
-              </div>
-              <div class="space-y-1">
-                <div class="text-sm font-bold text-plantation-500">Giftbox</div>
-                <div class="font-medium">{{ row.original.giftbox }}</div>
+                <div class="font-medium">{{ packing.quantity }} pack</div>
               </div>
             </div>
-            <h2>Momoka</h2>
+            <h2>Reject</h2>
+            <div
+              class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 mb-8"
+            >
+              <div
+                v-for="(reject, index) in row.original.Reject"
+                :key="index"
+                class="space-y-1"
+              >
+                <div class="text-sm font-bold text-plantation-500">
+                  Reason {{ reject.reason.name }}
+                </div>
+                <div class="font-medium">{{ reject.quantity }} g</div>
+              </div>
+            </div>
+            <h2>Yield</h2>
             <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-              <div class="space-y-1">
+              <div
+                v-for="(yieldItem, index) in row.original.Yield"
+                :key="index"
+                class="space-y-1"
+              >
                 <div class="text-sm font-bold text-plantation-500">
-                  Momoka 3pcs
+                  Variant {{ yieldItem.variantGrade.variant.name }} Grade
+                  {{ yieldItem.variantGrade.grade.name }}
                 </div>
-                <div class="font-medium">{{ row.original.momoka3pcs }}</div>
-              </div>
-              <div class="space-y-1">
-                <div class="text-sm font-bold text-plantation-500">
-                  Momoka A11
-                </div>
-                <div class="font-medium">{{ row.original.momokaA11 }}</div>
-              </div>
-              <div class="space-y-1">
-                <div class="text-sm font-bold text-plantation-500">
-                  Momoka A15
-                </div>
-                <div class="font-medium">{{ row.original.momokaA15 }}</div>
-              </div>
-              <div class="space-y-1">
-                <div class="text-sm font-bold text-plantation-500">
-                  Momoka Grade B
-                </div>
-                <div class="font-medium">{{ row.original.momokaGradeB }}</div>
+                <div class="font-medium">{{ yieldItem.quantity }} tray</div>
               </div>
             </div>
           </div>

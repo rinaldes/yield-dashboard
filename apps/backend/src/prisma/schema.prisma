@@ -53,6 +53,8 @@ model Harvest {
   location_id Int
   pic_id      Int
   siklus      Int?
+  total       Int
+  total_ex_momoka Int
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @default(now()) @map("updated_at")
   location    Location  @relation(fields: [location_id], references: [id])
@@ -117,7 +119,7 @@ model VariantGrade {
   updatedAt    DateTime       @default(now()) @map("updated_at")
   variant      Variant        @relation(fields: [variant_id], references: [id])
   grade        Grade          @relation(fields: [grade_id], references: [id])
-  YieldVariant YieldVariant[]
+  Yield Yield[]
 }
 
 model Package {
@@ -156,24 +158,14 @@ model RejectReason {
 }
 
 model Yield {
-  id           Int            @id @default(autoincrement())
-  harvest_id   Int
-  is_active    Boolean        @default(true)
-  createdAt    DateTime       @default(now()) @map("created_at")
-  updatedAt    DateTime       @default(now()) @map("updated_at")
-  harvest      Harvest        @relation(fields: [harvest_id], references: [id])
-  YieldVariant YieldVariant[]
-}
-
-model YieldVariant {
-  id               Int          @id @default(autoincrement())
-  yield_id         Int
+  id               Int            @id @default(autoincrement())
+  harvest_id       Int
   variant_grade_id Int
   quantity         Int
-  is_active        Boolean      @default(true)
-  createdAt        DateTime     @default(now()) @map("created_at")
-  updatedAt        DateTime     @default(now()) @map("updated_at")
-  yield            Yield        @relation(fields: [yield_id], references: [id])
+  is_active        Boolean        @default(true)
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @default(now()) @map("updated_at")
+  harvest          Harvest        @relation(fields: [harvest_id], references: [id])
   variantGrade     VariantGrade @relation(fields: [variant_grade_id], references: [id])
 }
 
