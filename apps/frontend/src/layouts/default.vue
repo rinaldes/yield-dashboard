@@ -60,13 +60,33 @@ const items = ref([
       <nav
         class="flex gap-16 justify-center md:justify-end text-crown-of-thorns-500"
       >
-        <!-- <UNavigationMenu :items="items" class="w-full justify-center" /> -->
-        <NuxtLink
+        <UPopover
+          mode="hover"
           v-for="item in items"
-          :href="item.to"
-          class="flex items-center gap-2 hover:underline-offset-8 hover:underline"
-          >{{ item.label }}</NuxtLink
+          :content="{
+            align: 'end',
+            side: 'bottom',
+          }"
         >
+          <button
+            class="flex items-center gap-2 hover:underline-offset-8 hover:underline cursor-pointer"
+          >
+            {{ item.label }}
+          </button>
+
+          <template #content>
+            <div v-for="child in item.children" class="p-4">
+              <NuxtLink
+                :to="child.to"
+                class="flex items-center gap-2 hover:underline-offset-8 hover:underline cursor-pointer"
+              >
+                <UIcon :name="child.icon" class="w-4 h-4" />
+                <span class="text-plantation-500">{{ child.label }}</span>
+              </NuxtLink>
+              <UDivider class="my-2" />
+            </div>
+          </template>
+        </UPopover>
       </nav>
     </div>
 
