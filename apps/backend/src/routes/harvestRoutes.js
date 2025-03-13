@@ -7,6 +7,7 @@ export default async function routes(fastify) {
   fastify.get("/api/v1/harvest", async (request, reply) => {
     try {
       const harvestData = await prisma.harvest.findMany({
+        where: { is_active: true },
         include: {
           location: true,
           pic: true,
@@ -224,14 +225,16 @@ export default async function routes(fastify) {
     const { id } = request.params;
 
     try {
-      await prisma.harvest.delete({
+      await prisma.harvest.update({
         where: { id: parseInt(id) },
+        data: { is_active: false },
       });
-      reply.send({ message: "Harvest data deleted successfully" });
+      reply.send({ message: "Harvest data soft deleted successfully" });
     } catch (err) {
-      reply
-        .status(500)
-        .send({ error: "Failed to delete harvest data", details: err.message });
+      reply.status(500).send({
+        error: "Failed to soft delete harvest data",
+        details: err.message,
+      });
     }
   });
 }

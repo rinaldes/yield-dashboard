@@ -18,14 +18,14 @@ const { data: harvestData } = await useFetch<any>(
   }
 );
 
-const { data, status, refresh } = await useFetch<Harvest[]>(
-  `${useRuntimeConfig().public.apiBase}/api/v1/harvest`,
-  {
-    key: "table-harvest",
-    lazy: true,
-    default: () => [],
-  }
-);
+// const { data, status, refresh } = await useFetch<Harvest[]>(
+//   `${useRuntimeConfig().public.apiBase}/api/v1/harvest`,
+//   {
+//     key: "table-harvest",
+//     lazy: true,
+//     default: () => [],
+//   }
+// );
 
 const reject = reactive<Partial<RejectSchema>>({
   jamur: undefined,
@@ -345,7 +345,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       }
     );
 
-    refresh();
+    // refresh();
     navigateTo("/harvest");
   } catch (error) {
     toast.add({
@@ -879,6 +879,6 @@ watch(
       <Button label="Reset" type="reset" color="secondary" class="mt-4" />
     </UForm>
 
-    <HarvestComponentsTable :data="data" :status="status" :refresh="refresh" />
+    <!-- <HarvestComponentsTable :data="data" :status="status" :refresh="refresh" /> -->
   </div>
 </template>
