@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import * as z from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui";
+const { $toast } = useNuxtApp();
 
 const schema = z.object({
   datetime: z.string(),
@@ -162,9 +163,12 @@ async function onSubmit(event: FormSubmitEvent<z.output<typeof schema>>) {
         body: payload,
       }
     );
-
+    $toast.success("Forecast updated successfully");
     navigateTo("/dashboard/forecast");
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+    $toast.error("Failed to update forecast");
+  }
 }
 
 watch(
@@ -207,6 +211,7 @@ watch(
 
 <template>
   <div class="space-y-12">
+    <Toaster position="top-right" />
     <h1>Forecast Form</h1>
     <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
       <div

@@ -6,6 +6,7 @@ import type { TableColumn } from "@nuxt/ui";
 const UButton = resolveComponent("UButton");
 const { formatToWIB } = useDateTime();
 import { getPaginationRowModel } from "@tanstack/vue-table";
+const { $toast } = useNuxtApp();
 
 const samples = ref([
   {
@@ -50,8 +51,6 @@ const state = reactive<Partial<Schema>>({
   pic_id: undefined,
 });
 
-const toast = useToast();
-
 async function onSubmit(event: FormSubmitEvent<Schema>) {
   try {
     console.log(event.data);
@@ -73,11 +72,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         }
       );
     }
-    toast.add({
-      title: "Success",
-      description: "Brix data created successfully",
-      color: "success",
-    });
+    $toast.success("Brix data created successfully");
     state.location_id = undefined;
     state.pic_id = undefined;
     samples.value = [
@@ -89,11 +84,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     ];
     refresh();
   } catch (error) {
-    toast.add({
-      title: "Error",
-      description: "Failed to create brix data",
-      color: "error",
-    });
+    $toast.error("Failed to create brix data");
+    console.log(error);
   }
 }
 
@@ -238,13 +230,12 @@ const sorting = ref([
   },
 ]);
 
-const columnVisibility = ref({});
-
 const table = ref();
 </script>
 
 <template>
   <div class="space-y-12">
+    <Toaster position="top-right" />
     <div>
       <UBreadcrumb :items="items" class="cursor-pointer mb-4">
         <template #separator>

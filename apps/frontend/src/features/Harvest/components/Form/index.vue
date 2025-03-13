@@ -3,8 +3,8 @@ import type { FormSubmitEvent } from "@nuxt/ui";
 import type { RejectSchema, YieldSchema, Schema } from "./schema";
 import { schema } from "./schema";
 import type { Harvest } from "../../type";
+const { $toast } = useNuxtApp();
 
-const toast = useToast();
 const currentDateTime = ref("");
 
 const { data, status, refresh } = await useFetch<Harvest[]>(
@@ -217,7 +217,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     });
 
     refresh();
-
+    $toast.success("Harvest data saved successfully");
     //clear state
     reject.jamur = undefined;
     reject.mildew = undefined;
@@ -260,7 +260,10 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     state.totalExMomoka = 0;
     state.reject = reject;
     state.yield = yieldState;
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+    $toast.error("Error saving data");
+  }
 }
 
 onMounted(() => {
@@ -356,6 +359,7 @@ watch(
 <template>
   <div class="space-y-12">
     <h1>Harvest Form</h1>
+    <Toaster position="top-right" />
     <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
       <div
         class="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-c xl:grid-cols-3"

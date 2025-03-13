@@ -30,5 +30,5 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ["@nuxt/ui", "@pinia/nuxt"],
+  modules: ["@nuxt/ui", "@pinia/nuxt", "vue-sonner/nuxt"],
 });

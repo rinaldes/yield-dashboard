@@ -6,6 +6,7 @@ import { getPaginationRowModel } from "@tanstack/vue-table";
 import type { TableColumn } from "@nuxt/ui";
 const UButton = resolveComponent("UButton");
 const { formatToWIB } = useDateTime();
+const { $toast } = useNuxtApp();
 
 const schema = z.object({
   datetime: z.number().min(0),
@@ -129,7 +130,11 @@ const columns: TableColumn<Forecast>[] = [
                   }
                 );
                 refresh();
-              } catch (error) {}
+                $toast.success("Forecast removed successfully");
+              } catch (error) {
+                console.log(error);
+                $toast.error("Failed to remove forecast");
+              }
             }
           },
         }),
@@ -167,7 +172,6 @@ const items = ref([
   },
 ]);
 
-const toast = useToast();
 async function onSubmit(event: FormSubmitEvent<Schema>) {
   const firstDayOfWeek = new Date();
   firstDayOfWeek.setDate(
@@ -229,11 +233,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       }
     );
     refresh();
-    toast.add({
-      title: "Success",
-      description: "Forecast created successfully",
-      color: "success",
-    });
+    $toast.success("Forecast created successfully");
     state.harvestLocation = undefined;
     state.pic = undefined;
     state.packGradeA = undefined;
@@ -248,11 +248,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     state.total = 0;
     state.totalExMomoka = 0;
   } catch (error) {
-    toast.add({
-      title: "Error",
-      description: "Failed to create forecast",
-      color: "error",
-    });
+    $toast.error("Failed to create forecast");
+    console.log(error);
   }
 }
 
@@ -320,6 +317,7 @@ const table = ref();
 
 <template>
   <div class="space-y-12">
+    <Toaster position="top-right" />
     <h1>Forecast Form</h1>
     <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
       <div

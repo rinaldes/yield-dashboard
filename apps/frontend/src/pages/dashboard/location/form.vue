@@ -5,6 +5,7 @@ import { h, ref } from "vue";
 import { getPaginationRowModel } from "@tanstack/vue-table";
 import type { TableColumn } from "@nuxt/ui";
 import { debounce } from "lodash-es";
+const { $toast } = useNuxtApp();
 
 const UButton = resolveComponent("UButton");
 const { ageCalculator, formatToWIB } = useDateTime();
@@ -35,7 +36,34 @@ const state = reactive<Partial<Schema>>({
   area: 0,
 });
 
-const toast = useToast();
+const saveLocation = async () => {
+  if (!editingLocation.value) return;
+  try {
+    const payload = {
+      ...editingLocation.value,
+      area: editingLocation.value.width * editingLocation.value.length,
+      planting_date: editingLocation.value.planting_date
+        ? new Date(editingLocation.value.planting_date).toISOString()
+        : undefined,
+    };
+    await $fetch(
+      `${useRuntimeConfig().public.apiBase}/api/v1/location/${
+        editingLocation.value.id
+      }`,
+      {
+        method: "PUT",
+        body: payload,
+      }
+    );
+    isPopupOpen.value = false;
+    isPopupPlantOpen.value = false;
+    $toast.success("Location updated successfully");
+    refresh();
+  } catch (error) {
+    $toast.error("Failed to update location");
+    console.log(error);
+  }
+};
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
   try {
@@ -53,11 +81,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         body: payload,
       }
     );
-    toast.add({
-      title: "Success",
-      description: "Location created successfully",
-      color: "success",
-    });
+    $toast.success("Location created successfully");
 
     state.name = "";
     state.is_indoors = false;
@@ -67,14 +91,10 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     state.length = 0;
     state.area = 0;
     state.planting_date = new Date().toISOString();
-    // router.push("/dashboard/location");
     refresh();
   } catch (error) {
-    toast.add({
-      title: "Error",
-      description: "Failed to create location",
-      color: "error",
-    });
+    console.error(error);
+    $toast.error("Failed to create location");
   }
 }
 
@@ -284,9 +304,12 @@ const columns: TableColumn<any>[] = [
                     method: "DELETE",
                   }
                 );
-
+                $toast.success("Location removed successfully");
                 refresh();
-              } catch (error) {}
+              } catch (error) {
+                $toast.error("Failed to remove location");
+                console.log(error);
+              }
             }
           },
         }),
@@ -311,6 +334,7 @@ const table = ref();
 
 <template>
   <div class="space-y-12">
+    <Toaster position="top-right" />
     <div>
       <UBreadcrumb :items="items" class="cursor-pointer mb-4">
         <template #separator>
@@ -435,5 +459,71 @@ const table = ref();
         />
       </div>
     </div>
+    <UModal v-model:open="isPopupOpen" class="w-fit px-8">
+      <template #content>
+        <div v-if="editingLocation" class="p-4 mx-auto">
+          <h2 class="text-lg font-semibold mb-4">Update Location</h2>
+          <UForm :schema="schema" :state="editingLocation" class="space-y-4">
+            <UFormField label="Name" name="name">
+              <UInput v-model="editingLocation.name" />
+            </UFormField>
+            <UFormField label="Is Indoor" name="is_indoors" hidden>
+              <UCheckbox v-model="editingLocation.is_indoors" />
+            </UFormField>
+            <label
+              >Area :
+              {{ editingLocation.width * editingLocation.length }} m²</label
+            >
+            <br />
+            <UFormField label="Width" name="width">
+              <UInput v-model="editingLocation.width" type="number" />
+            </UFormField>
+            <UFormField label="Length" name="length">
+              <UInput v-model="editingLocation.length" type="number" />
+            </UFormField>
+            <UFormField label="Height" name="height">
+              <UInput v-model="editingLocation.height" type="number" />
+            </UFormField>
+            <div class="flex justify-end space-x-2">
+              <UButton label="Cancel" @click="isPopupOpen = false" />
+              <UButton label="Save" color="primary" @click="saveLocation" />
+            </div>
+          </UForm>
+        </div>
+      </template>
+    </UModal>
+
+    <UModal v-model:open="isPopupPlantOpen" class="w-fit px-8">
+      <template #content>
+        <div v-if="editingLocation" class="p-4 mx-auto">
+          <h2 class="text-lg font-semibold mb-4">Update Plant</h2>
+          <UForm :schema="schema" :state="editingLocation" class="space-y-4">
+            <h3>Location : {{ editingLocation.name }}</h3>
+
+            <UFormField label="Total Plants" name="total_plants">
+              <UInput v-model="editingLocation.total_plants" type="number" />
+            </UFormField>
+            <UFormField label="Planting Date" name="planting_date">
+              <UInput
+                v-model="editingLocation.planting_date"
+                type="date"
+                class="w-full"
+                :value="
+                  editingLocation.planting_date
+                    ? new Date(editingLocation.planting_date)
+                        .toISOString()
+                        .split('T')[0]
+                    : ''
+                "
+              />
+            </UFormField>
+            <div class="flex justify-end space-x-2">
+              <UButton label="Cancel" @click="isPopupPlantOpen = false" />
+              <UButton label="Save" color="primary" @click="saveLocation" />
+            </div>
+          </UForm>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>

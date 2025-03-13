@@ -8,6 +8,7 @@ import { debounce } from "lodash-es";
 import { z } from "zod";
 const UButton = resolveComponent("UButton");
 const { formatToWIB } = useDateTime();
+const { $toast } = useNuxtApp();
 
 const brixStore = useBrixStore();
 
@@ -198,7 +199,11 @@ const columns: TableColumn<Brix>[] = [
                   }
                 );
                 refresh();
-              } catch (error) {}
+                $toast.success("Brix entry removed successfully");
+              } catch (error) {
+                console.log(error);
+                $toast.error("Failed to remove brix entry");
+              }
             }
           },
         }),
@@ -223,8 +228,10 @@ const saveBrix = async () => {
     );
     isPopupOpen.value = false;
     refresh();
+    $toast.success("Brix entry updated successfully");
   } catch (error) {
     console.log(error);
+    $toast.error("Failed to update brix entry");
   }
 };
 
@@ -247,6 +254,7 @@ const table = ref();
 
 <template>
   <div class="w-full space-y-4">
+    <Toaster position="top-right" />
     <div class="flex justify-between items-center mb-8">
       <h1 class="text-2xl font-bold">Brix Data</h1>
       <UButton

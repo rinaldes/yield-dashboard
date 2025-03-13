@@ -3,8 +3,8 @@ import type { FormSubmitEvent } from "@nuxt/ui";
 import type { RejectSchema, YieldSchema, Schema } from "./schema";
 import { schema } from "./schema";
 import type { Harvest } from "../../type";
+const { $toast } = useNuxtApp();
 
-const toast = useToast();
 const currentDateTime = ref("");
 
 const route = useRoute();
@@ -344,15 +344,12 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         body: payload,
       }
     );
-
+    $toast.success("Harvest updated successfully");
     // refresh();
     navigateTo("/harvest");
   } catch (error) {
-    toast.add({
-      title: "Error",
-      description: "Failed to update harvest data",
-      color: "error",
-    });
+    $toast.error("Failed to update harvest");
+    console.log(error);
   }
 }
 
@@ -436,6 +433,7 @@ watch(
 
 <template>
   <div class="space-y-12">
+    <Toaster position="top-right" />
     <h1>Harvest Form</h1>
     <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
       <div

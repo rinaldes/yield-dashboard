@@ -3,8 +3,8 @@ import { h, ref } from "vue";
 import { getPaginationRowModel } from "@tanstack/vue-table";
 import type { TableColumn } from "@nuxt/ui";
 import { debounce } from "lodash-es";
-
 import * as z from "zod";
+const { $toast } = useNuxtApp();
 
 const UButton = resolveComponent("UButton");
 const { ageCalculator, formatToWIB } = useDateTime();
@@ -92,8 +92,10 @@ const saveLocation = async () => {
     );
     isPopupOpen.value = false;
     isPopupPlantOpen.value = false;
+    $toast.success("Location updated successfully");
     refresh();
   } catch (error) {
+    $toast.error("Failed to update location");
     console.log(error);
   }
 };
@@ -225,7 +227,7 @@ const columns: TableColumn<Location>[] = [
   },
   {
     accessorKey: "actions",
-    header: () => h("div", { class: "text-right" }, "Actions"),
+    header: () => h("div", { class: "text-right" }, " "),
     cell: ({ row }) =>
       h("div", { class: "flex space-x-4 w-full justify-end" }, [
         h(UButton, {
@@ -268,9 +270,12 @@ const columns: TableColumn<Location>[] = [
                     method: "DELETE",
                   }
                 );
-
+                $toast.success("Location removed successfully");
                 refresh();
-              } catch (error) {}
+              } catch (error) {
+                console.log(error);
+                $toast.error("Error removing location");
+              }
             }
           },
         }),
@@ -299,14 +304,11 @@ const table = ref();
 watch([nameFilter, totalPlantsFilter, areaFilter, plantingDateFilter], () => {
   updateColumnFilters();
 });
-
-onMounted(() => {
-  updateColumnFilters();
-});
 </script>
 
 <template>
   <div class="w-full space-y-4 pb-4">
+    <Toaster position="top-right" />
     <div class="flex justify-between items-center mb-8">
       <h1>Location Table</h1>
       <Button

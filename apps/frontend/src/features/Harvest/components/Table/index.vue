@@ -4,6 +4,7 @@ import Detail from "./Detail.vue";
 import { getPaginationRowModel } from "@tanstack/vue-table";
 import type { TableColumn } from "@nuxt/ui";
 import type { Harvest } from "../../type";
+const { $toast } = useNuxtApp();
 
 const UButton = resolveComponent("UButton");
 const { formatToWIB } = useDateTime();
@@ -96,7 +97,11 @@ const columns: TableColumn<Harvest>[] = [
                   }
                 );
                 refresh();
-              } catch (error) {}
+                $toast.success("Harvest removed successfully");
+              } catch (error) {
+                console.log(error);
+                $toast.error("Failed to remove harvest");
+              }
             }
           },
         }),
@@ -144,6 +149,7 @@ const expanded = ref({});
 
 <template>
   <div class="w-full py-6 px-4 bg-white border border-crown-of-thorns-500">
+    <Toaster position="top-right" />
     <UTable
       ref="table"
       v-model:pagination="pagination"

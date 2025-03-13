@@ -5,6 +5,7 @@ import type { TableColumn } from "@nuxt/ui";
 import { debounce } from "lodash-es";
 const UButton = resolveComponent("UButton");
 const { formatToWIB } = useDateTime();
+const { $toast } = useNuxtApp();
 
 import * as z from "zod";
 type Forecast = {
@@ -131,7 +132,11 @@ const columns: TableColumn<Forecast>[] = [
                   }
                 );
                 refresh();
-              } catch (error) {}
+                $toast.success("Forecast removed successfully");
+              } catch (error) {
+                console.log(error);
+                $toast.error("Failed to remove forecast");
+              }
             }
           },
         }),
@@ -157,6 +162,7 @@ const table = ref();
 
 <template>
   <div class="w-full space-y-4 pb-4">
+    <Toaster position="top-right" />
     <div class="flex justify-between items-center mb-8">
       <h1>Forecast Table</h1>
       <Button
