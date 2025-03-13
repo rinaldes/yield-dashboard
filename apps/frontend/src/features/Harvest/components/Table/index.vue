@@ -8,16 +8,11 @@ import type { Harvest } from "../../type";
 const UButton = resolveComponent("UButton");
 const { formatToWIB } = useDateTime();
 
-const { data, status, refresh } = await useFetch<Harvest[]>(
-  `${
-    useRuntimeConfig().public.apiBase
-  }/api/v1/harvest?include=location,pic,Packing,Reject,Yield`,
-  {
-    key: "table-harvest",
-    lazy: true,
-    default: () => [],
-  }
-);
+const { data, status, refresh } = defineProps<{
+  data: Harvest[];
+  status: string;
+  refresh: () => void;
+}>();
 
 const columns: TableColumn<Harvest>[] = [
   {

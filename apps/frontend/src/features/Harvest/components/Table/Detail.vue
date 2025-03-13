@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const props = defineProps<{ row: any }>();
+defineProps<{ row: any }>();
 </script>
 
 <template>

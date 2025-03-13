@@ -2,9 +2,21 @@
 import type { FormSubmitEvent } from "@nuxt/ui";
 import type { RejectSchema, YieldSchema, Schema } from "./schema";
 import { schema } from "./schema";
+import type { Harvest } from "../../type";
 
 const toast = useToast();
 const currentDateTime = ref("");
+
+const { data, status, refresh } = await useFetch<Harvest[]>(
+  `${
+    useRuntimeConfig().public.apiBase
+  }/api/v1/harvest?include=location,pic,Packing,Reject,Yield`,
+  {
+    key: "table-harvest",
+    lazy: true,
+    default: () => [],
+  }
+);
 
 const reject = reactive<Partial<RejectSchema>>({
   jamur: undefined,
@@ -195,6 +207,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       method: "POST",
       body: payload,
     });
+
+    refresh();
 
     //clear state
     reject.jamur = undefined;
@@ -776,5 +790,7 @@ watch(
       <Button label="Submit" type="submit" class="mt-4 mr-2" />
       <Button label="Reset" type="reset" color="secondary" class="mt-4" />
     </UForm>
+
+    <HarvestComponentsTable :data="data" :status="status" :refresh="refresh" />
   </div>
 </template>

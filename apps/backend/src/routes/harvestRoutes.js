@@ -40,6 +40,51 @@ export default async function routes(fastify) {
     }
   });
 
+  // GET harvest data by ID
+  fastify.get("/api/v1/harvest/:id", async (request, reply) => {
+    const { id } = request.params;
+
+    try {
+      const harvestData = await prisma.harvest.findUnique({
+        where: { id: parseInt(id) },
+        include: {
+          location: true,
+          pic: true,
+          Packing: {
+            include: {
+              package: true,
+            },
+          },
+          Reject: {
+            include: {
+              reason: true,
+            },
+          },
+          Yield: {
+            include: {
+              variantGrade: {
+                include: {
+                  variant: true,
+                  grade: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!harvestData) {
+        return reply.status(404).send({ error: "Harvest data not found" });
+      }
+
+      return harvestData;
+    } catch (err) {
+      reply
+        .status(500)
+        .send({ error: "Failed to fetch harvest data", details: err.message });
+    }
+  });
+
   fastify.post(
     "/api/v1/harvest",
     { schema: harvestSchema },
