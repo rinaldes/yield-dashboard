@@ -6,6 +6,10 @@ export default defineNuxtConfig({
 
   css: ["~/assets/css/main.css"],
 
+  components: {
+    dirs: ["~/components", "~/features"],
+  },
+
   runtimeConfig: {
     public: {
       apiBase: process.env.API_BASE_URL || "http://localhost:4000",
